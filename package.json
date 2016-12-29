@@ -1,0 +1,11 @@
+{
+  "name": "libnoise",
+  "version": "1.0.0",
+  "description": "",
+  "main": "libnoise.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rob Grindeland",
+  "license": "MIT"
+}
