@@ -1,6 +1,6 @@
 'use strict';
 
-var Module = require('../core/Module');
+var Module = require('../Module');
 
 class Checkerboard extends Module {
     constructor() {

@@ -1,6 +1,6 @@
 'use strict';
 
-var Module = require('../core/Module');
+var Module = require('../Module');
 
 class Constant extends Module {
     constructor() {

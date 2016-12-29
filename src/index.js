@@ -1,13 +1,21 @@
 const NYI = () => { throw new Error('Not yet implemented'); };
 
-var LibNoise = {
+var JSNoise = {
     r: 0,
+    
+    Random: require('alea'),
+    
+    Noise: {
+        Perlin: NYI,
+        Simplex: NYI,
+        Voronoi: NYI
+    },
     
     Module: {
         // Generators
         Billow: NYI,
-        Checkerboard: require('./generator/Checkerboard'),
-        Constant: require('./generator/Constant'),
+        Checkerboard: require('./modules/generator/Checkerboard'),
+        Constant: require('./modules/generator/Constant'),
         Cylinders: NYI,
         Perlin: NYI,
         Simplex: NYI,
@@ -16,35 +24,35 @@ var LibNoise = {
         Voronoi: NYI,
         
         // Modifiers
-        Abs: require('./modifier/Abs'),
-        Clamp: require('./modifier/Clamp'),
+        Abs: require('./modules/modifier/Abs'),
+        Clamp: require('./modules/modifier/Clamp'),
         Curve: NYI,
-        Exponent: require('./modifier/Exponent'),
-        Invert: require('./modifier/Invert'),
-        ScaleBias: require('./modifier/ScaleBias'),
+        Exponent: require('./modules/modifier/Exponent'),
+        Invert: require('./modules/modifier/Invert'),
+        ScaleBias: require('./modules/modifier/ScaleBias'),
         Terrace: NYI,
         
         // Combiners
-        Add: require('./combiner/Add'),
-        Max: require('./combiner/Max'),
-        Min: require('./combiner/Min'),
-        Multiply: require('./combiner/Multiply'),
-        Power: require('./combiner/Power'),
+        Add: require('./modules/combiner/Add'),
+        Max: require('./modules/combiner/Max'),
+        Min: require('./modules/combiner/Min'),
+        Multiply: require('./modules/combiner/Multiply'),
+        Power: require('./modules/combiner/Power'),
         
         // Selectors
         Blend: NYI,
         Select: NYI,
         
         // Transformers
-        Displace: require('./transformer/Displace'),
+        Displace: require('./modules/transformer/Displace'),
         RotatePoint: NYI,
-        ScalePoint: require('./transformer/ScalePoint'),
-        TranslatePoint: require('./transformer/TranslatePoint'),
+        ScalePoint: require('./modules/transformer/ScalePoint'),
+        TranslatePoint: require('./modules/transformer/TranslatePoint'),
         Turbulence: NYI,
         
         // Misc
-        Cache: require('./misc/Cache')
+        Cache: require('./modules/misc/Cache')
     }
 };
 
-module.exports = LibNoise;
+module.exports = JSNoise;
