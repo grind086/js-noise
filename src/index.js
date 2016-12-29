@@ -19,9 +19,9 @@ var LibNoise = {
         Abs: require('./modifier/Abs'),
         Clamp: require('./modifier/Clamp'),
         Curve: NYI,
-        Exponent: NYI,
-        Invert: NYI,
-        ScaleBias: NYI,
+        Exponent: require('./modifier/Exponent'),
+        Invert: require('./modifier/Invert'),
+        ScaleBias: require('./modifier/ScaleBias'),
         Terrace: NYI,
         
         // Combiners
@@ -36,7 +36,7 @@ var LibNoise = {
         Select: NYI,
         
         // Transformers
-        Displace: NYI,
+        Displace: require('./transformer/Displace'),
         RotatePoint: NYI,
         ScalePoint: require('./transformer/ScalePoint'),
         TranslatePoint: require('./transformer/TranslatePoint'),
