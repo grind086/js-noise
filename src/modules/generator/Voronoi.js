@@ -1,8 +1,8 @@
 'use strict';
 
 var Module = require('../Module'),
-    VoronoiNoise = require('../noise/Voronoi'),
-    Mathx = require('../math');
+    VoronoiNoise = require('../../noise/Voronoi'),
+    Mathx = require('../../math');
 
 class Voronoi extends Module {
     constructor() {
@@ -15,13 +15,13 @@ class Voronoi extends Module {
     
     get sourceModuleCount() { return 0; }
     
-    get seed() { return this.noise.rng.seed; }
-    set seed(s) { this.noise.rng.setSeed(s); }
+    get seed() { return this.noise.seed; }
+    set seed(s) { this.noise.seed = s; }
     
-    get meanPoints() { return this.noise.dist.mean; }
+    get meanPoints() { return this.noise.dist.mean + 1; }
     set meanPoints(n) {
         if (this.meanPoints !== n) {
-            this.noise.dist = new Mathx.Poisson(n);
+            this.noise.dist = new Mathx.Poisson(n - 1);
         }
     }
     

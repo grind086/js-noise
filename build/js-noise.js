@@ -120,7 +120,7 @@ var JSNoise = {
     Noise: {
         Perlin: NYI,
         Simplex: NYI,
-        Voronoi: NYI
+        Voronoi: require('./noise/Voronoi')
     },
     
     Module: {
@@ -133,7 +133,7 @@ var JSNoise = {
         Simplex: NYI,
         RidgedMulti: NYI,
         Spheres: NYI,
-        Voronoi: NYI,
+        Voronoi: require('./modules/generator/Voronoi'),
         
         // Modifiers
         Abs: require('./modules/modifier/Abs'),
@@ -169,7 +169,143 @@ var JSNoise = {
 
 module.exports = JSNoise;
 
-},{"./modules/combiner/Add":4,"./modules/combiner/Max":5,"./modules/combiner/Min":6,"./modules/combiner/Multiply":7,"./modules/combiner/Power":8,"./modules/generator/Checkerboard":9,"./modules/generator/Constant":10,"./modules/misc/Cache":11,"./modules/modifier/Abs":12,"./modules/modifier/Clamp":13,"./modules/modifier/Exponent":14,"./modules/modifier/Invert":15,"./modules/modifier/ScaleBias":16,"./modules/transformer/Displace":17,"./modules/transformer/ScalePoint":18,"./modules/transformer/TranslatePoint":19,"alea":1}],3:[function(require,module,exports){
+if (typeof window == 'object') window.JSNoise = JSNoise;
+
+},{"./modules/combiner/Add":8,"./modules/combiner/Max":9,"./modules/combiner/Min":10,"./modules/combiner/Multiply":11,"./modules/combiner/Power":12,"./modules/generator/Checkerboard":13,"./modules/generator/Constant":14,"./modules/generator/Voronoi":15,"./modules/misc/Cache":16,"./modules/modifier/Abs":17,"./modules/modifier/Clamp":18,"./modules/modifier/Exponent":19,"./modules/modifier/Invert":20,"./modules/modifier/ScaleBias":21,"./modules/transformer/Displace":22,"./modules/transformer/ScalePoint":23,"./modules/transformer/TranslatePoint":24,"./noise/Voronoi":25,"alea":1}],3:[function(require,module,exports){
+'use strict';
+
+class LCG {
+    constructor(seed) {
+        if (typeof seed != 'number') seed = Date.now();
+        
+        this.seed = seed;
+        this.state = seed;
+    }
+    
+    setSeed(seed) {
+        this.seed = seed;
+        this.state = seed;
+    }
+    
+    next() {
+        return this.state = ((this.state * 1664525 + 1013904223) & 0xffffffff);
+    }
+    
+    random() {
+        return this.next() / 0xffffffff + 0.5;
+    }
+}
+
+module.exports = LCG;
+},{}],4:[function(require,module,exports){
+'use strict';
+
+var utils = require('./utils');
+
+class Poisson extends Array {
+    constructor(mean, threshold) {
+        super();
+        
+        if (!threshold) threshold = 0.0001;
+        
+        this.mean = mean;
+        
+        var ptot = 1,
+            i = 0,
+            p;
+            
+        while (ptot > threshold) {
+            p = this.probability(i);
+            this[i++] = p;
+            ptot -= p;
+        }
+        
+        this[i] = ptot;
+    }
+    
+    probability(k) {
+        return Math.pow(this.mean, k) * Math.pow(Math.E, -this.mean) / utils.factorial(k);
+    }
+    
+    choose(n) {
+        n = n ? n : Math.random();
+        
+        for (var i = 0; i < this.length; i++) {
+            n -= this[i];
+            if (n <= 0) return i;
+        }
+        
+        return i;
+    }
+}
+
+module.exports = Poisson;
+},{"./utils":6}],5:[function(require,module,exports){
+'use strict';
+
+var utils = require('./utils'),
+    LCG = require('./LCG'),
+    Poisson = require('./Poisson');
+    
+var Mathx = {
+    factorial: utils.factorial,
+    fnv1a: utils.fnv1a,
+    coordHash: utils.coordHash,
+    
+    LCG: LCG,
+    Poisson: Poisson
+};
+
+module.exports = Mathx;
+},{"./LCG":3,"./Poisson":4,"./utils":6}],6:[function(require,module,exports){
+'use strict';
+
+var MathUtils = {};
+
+MathUtils.factorial = function(n) {
+    var v = 1;
+    for (var i = 1; i <= n; i++) {
+        v *= i;
+    }
+    return v;
+};
+
+MathUtils.fnv1a = function(octets) {
+    var hash = 2166136261;
+    
+    octets.forEach((n) => {
+        hash ^= n & 255;
+        hash *= 16777619;
+    });
+    
+    return hash & 0xffffffff;
+};
+
+MathUtils.coordHash = function(x, y, z) {
+    x = Math.floor(x) & 0xffffffff;
+    y = Math.floor(y) & 0xffffffff;
+    z = Math.floor(z) & 0xffffffff;
+    
+    var octets = [
+        (x      ) & 255,
+        (x >> 8 ) & 255,
+        (x >> 16) & 255,
+        (x >> 24) & 255,
+        (y      ) & 255,
+        (y >> 8 ) & 255,
+        (y >> 16) & 255,
+        (y >> 24) & 255,
+        (z      ) & 255,
+        (z >> 8 ) & 255,
+        (z >> 16) & 255,
+        (z >> 24) & 255,
+    ];
+    
+    return MathUtils.fnv1a(octets);
+};
+
+module.exports = MathUtils;
+},{}],7:[function(require,module,exports){
 'use strict';
 
 class Module {
@@ -188,13 +324,17 @@ class Module {
             throw new Error(`Got ${list.length} sources, expected ${this.sourceModuleCount}`);
         }
         
-        list.forEach(this.sourceModules.push);
+        this.sourceModules.length = this.sourceModuleCount;
+        
+        list.forEach((el, i) => {
+            this.sourceModules[i] = el;
+        });
     }
 }
 
 module.exports = Module;
 
-},{}],4:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -213,7 +353,7 @@ class Add extends Module {
 
 module.exports = Add;
 
-},{"../Module":3}],5:[function(require,module,exports){
+},{"../Module":7}],9:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -232,7 +372,7 @@ class Max extends Module {
 
 module.exports = Max;
 
-},{"../Module":3}],6:[function(require,module,exports){
+},{"../Module":7}],10:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -251,7 +391,7 @@ class Min extends Module {
 
 module.exports = Min;
 
-},{"../Module":3}],7:[function(require,module,exports){
+},{"../Module":7}],11:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -270,7 +410,7 @@ class Multiply extends Module {
 
 module.exports = Multiply;
 
-},{"../Module":3}],8:[function(require,module,exports){
+},{"../Module":7}],12:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -289,7 +429,7 @@ class Power extends Module {
 
 module.exports = Power;
 
-},{"../Module":3}],9:[function(require,module,exports){
+},{"../Module":7}],13:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -308,7 +448,7 @@ class Checkerboard extends Module {
 
 module.exports = Checkerboard;
 
-},{"../Module":3}],10:[function(require,module,exports){
+},{"../Module":7}],14:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -329,7 +469,42 @@ class Constant extends Module {
 
 module.exports = Constant;
 
-},{"../Module":3}],11:[function(require,module,exports){
+},{"../Module":7}],15:[function(require,module,exports){
+'use strict';
+
+var Module = require('../Module'),
+    VoronoiNoise = require('../../noise/Voronoi'),
+    Mathx = require('../../math');
+
+class Voronoi extends Module {
+    constructor() {
+        super();
+        
+        this.noise = new VoronoiNoise(3);
+        this.meanPoints = 3;
+        this.seed = Date.now();
+    }
+    
+    get sourceModuleCount() { return 0; }
+    
+    get seed() { return this.noise.seed; }
+    set seed(s) { this.noise.seed = s; }
+    
+    get meanPoints() { return this.noise.dist.mean + 1; }
+    set meanPoints(n) {
+        if (this.meanPoints !== n) {
+            this.noise.dist = new Mathx.Poisson(n - 1);
+        }
+    }
+    
+    getValue(x, y, z) {
+        return this.noise.getValue(x, y, z);
+    }
+}
+
+module.exports = Voronoi;
+
+},{"../../math":5,"../../noise/Voronoi":25,"../Module":7}],16:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -364,7 +539,7 @@ class Abs extends Module {
 
 module.exports = Abs;
 
-},{"../Module":3}],12:[function(require,module,exports){
+},{"../Module":7}],17:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -383,7 +558,7 @@ class Abs extends Module {
 
 module.exports = Abs;
 
-},{"../Module":3}],13:[function(require,module,exports){
+},{"../Module":7}],18:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -405,7 +580,7 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":3}],14:[function(require,module,exports){
+},{"../Module":7}],19:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -426,7 +601,7 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":3}],15:[function(require,module,exports){
+},{"../Module":7}],20:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -445,7 +620,7 @@ class Invert extends Module {
 
 module.exports = Invert;
 
-},{"../Module":3}],16:[function(require,module,exports){
+},{"../Module":7}],21:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -467,7 +642,7 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":3}],17:[function(require,module,exports){
+},{"../Module":7}],22:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -490,7 +665,7 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":3}],18:[function(require,module,exports){
+},{"../Module":7}],23:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -524,7 +699,7 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":3}],19:[function(require,module,exports){
+},{"../Module":7}],24:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -558,4 +733,75 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":3}]},{},[2]);
+},{"../Module":7}],25:[function(require,module,exports){
+'use strict';
+
+var Mathx = require('../math');
+
+class Voronoi {
+    constructor(meanPoints, seed) {
+        this.seed = seed || Date.now();
+        this.rng = new Mathx.LCG();
+        this.dist = new Mathx.Poisson((meanPoints || 1) - 1);
+        
+        this._prevCube = [null, null, null];
+        this._prevPoints = [];
+    }
+    
+    getValue(x, y, z) {
+        var seed = this.seed,
+            rng = this.rng,
+            dist = this.dist,
+            hash = Mathx.coordHash;
+            
+        var ix = Math.floor(x),
+            iy = Math.floor(y),
+            iz = Math.floor(z);
+            
+        var points = this._prevPoints;
+        
+        if (ix !== this._prevCube[0] || iy !== this._prevCube[1] || iz !== this._prevCube[2]) {
+            points = [];
+    
+            var dx, dy, dz, n, px, py, pz;
+            for (dx = -1; dx < 2; dx++) {
+                for (dy = -1; dy < 2; dy++) {
+                    for (dz = -1; dz < 2; dz++) {
+                        rng.setSeed(seed + hash(ix + dx, iy + dy, iz + dz));
+                        
+                        for (n = dist.choose(rng.random()) + 1; n > 0; n--) {
+                            px = ix + dx + rng.random();
+                            py = iy + dy + rng.random();
+                            pz = iz + dz + rng.random();
+                            
+                            points.push([px, py, pz]);
+                        }
+                    }
+                }
+            }
+            
+            this._prevCube = [ix, iy, iz];
+            this._prevPoints = points;
+        }
+        
+        var minDist = Infinity;
+        
+        var distX, distY, distZ, distSq;
+        points.forEach((pt) => {
+            distX = x - pt[0];
+            distY = y - pt[1];
+            distZ = z - pt[2];
+            
+            distSq = distX * distX + distY * distY + distZ * distZ;
+            
+            if (distSq < minDist) {
+                minDist = distSq;
+            }
+        });
+        
+        return Math.min(1, Math.max(0, Math.sqrt(minDist)));
+    }
+}
+
+module.exports = Voronoi;
+},{"../math":5}]},{},[2]);

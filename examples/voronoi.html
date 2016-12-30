@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <script type="text/javascript" src="../build/js-noise.js"></script>
+    </head>
+    
+    <body>
+        <script type="text/javascript">
+            (function() {
+                /* global JSNoise */
+                
+                var canvasWidth = 250,
+                    canvasHeight = 250,
+                    renderWidth = 10,
+                    renderHeight = 10;
+                    
+                var noise = new JSNoise.Noise.Voronoi(2, 1);
+                    
+                var el = document.createElement('canvas'),
+                    ctx = el.getContext('2d');
+                    
+                el.width = canvasWidth;
+                el.height = canvasHeight;
+                
+                var imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight),
+                    data = imgData.data;
+                    
+                var ws = renderWidth / canvasWidth,
+                    hs = renderHeight / canvasHeight;
+                    
+                var renderStart = Date.now();
+                
+                var i = 0, ix, iy, v;
+                for (iy = 0; iy < canvasHeight; iy++) {
+                    for (ix = 0; ix < canvasWidth; ix++) {
+                        v = Math.floor(255 * noise.getValue(ix * ws, iy * hs, 0));
+                        
+                        data[i  ] = v;
+                        data[i+1] = v;
+                        data[i+2] = v;
+                        data[i+3] = 255;
+                        
+                        i += 4;
+                    }
+                }
+                
+                console.log('Render: %s ms', Date.now() - renderStart);
+                
+                ctx.putImageData(imgData, 0, 0);
+                
+                document.body.appendChild(el);
+            })();
+        </script>
+    </body>
+</html>

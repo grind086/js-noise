@@ -56,3 +56,5 @@ var JSNoise = {
 };
 
 module.exports = JSNoise;
+
+if (typeof window == 'object') window.JSNoise = JSNoise;

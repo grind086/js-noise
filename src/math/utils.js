@@ -22,9 +22,9 @@ MathUtils.fnv1a = function(octets) {
 };
 
 MathUtils.coordHash = function(x, y, z) {
-    x = parseInt(x) & 0xffffffff;
-    y = parseInt(y) & 0xffffffff;
-    z = parseInt(z) & 0xffffffff;
+    x = Math.floor(x) & 0xffffffff;
+    y = Math.floor(y) & 0xffffffff;
+    z = Math.floor(z) & 0xffffffff;
     
     var octets = [
         (x      ) & 255,
