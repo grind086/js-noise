@@ -14,6 +14,11 @@
                     renderHeight = 10;
                     
                 var noise = new JSNoise.Noise.Voronoi(2, 1);
+                
+                var colors = new JSNoise.Mathx.Tween([
+                    [0, {r:  65, g: 185, b: 165}],
+                    [1, {r: 255, g: 255, b: 255}]
+                ], ['r', 'g', 'b']);
                     
                 var el = document.createElement('canvas'),
                     ctx = el.getContext('2d');
@@ -29,14 +34,15 @@
                     
                 var renderStart = Date.now();
                 
-                var i = 0, ix, iy, v;
+                var i = 0, ix, iy, v, c;
                 for (iy = 0; iy < canvasHeight; iy++) {
                     for (ix = 0; ix < canvasWidth; ix++) {
-                        v = Math.floor(255 * noise.getValue(ix * ws, iy * hs, 0));
+                        v = noise.getValue(ix * ws, iy * hs, 0);
+                        c = colors.value(v);
                         
-                        data[i  ] = v;
-                        data[i+1] = v;
-                        data[i+2] = v;
+                        data[i  ] = Math.floor(c.r);
+                        data[i+1] = Math.floor(c.g);
+                        data[i+2] = Math.floor(c.b);
                         data[i+3] = 255;
                         
                         i += 4;

@@ -117,6 +117,8 @@ var JSNoise = {
     
     Random: require('alea'),
     
+    Mathx: require('./math'),
+    
     Noise: {
         Perlin: NYI,
         Simplex: NYI,
@@ -171,7 +173,7 @@ module.exports = JSNoise;
 
 if (typeof window == 'object') window.JSNoise = JSNoise;
 
-},{"./modules/combiner/Add":8,"./modules/combiner/Max":9,"./modules/combiner/Min":10,"./modules/combiner/Multiply":11,"./modules/combiner/Power":12,"./modules/generator/Checkerboard":13,"./modules/generator/Constant":14,"./modules/generator/Voronoi":15,"./modules/misc/Cache":16,"./modules/modifier/Abs":17,"./modules/modifier/Clamp":18,"./modules/modifier/Exponent":19,"./modules/modifier/Invert":20,"./modules/modifier/ScaleBias":21,"./modules/transformer/Displace":22,"./modules/transformer/ScalePoint":23,"./modules/transformer/TranslatePoint":24,"./noise/Voronoi":25,"alea":1}],3:[function(require,module,exports){
+},{"./math":7,"./modules/combiner/Add":10,"./modules/combiner/Max":11,"./modules/combiner/Min":12,"./modules/combiner/Multiply":13,"./modules/combiner/Power":14,"./modules/generator/Checkerboard":15,"./modules/generator/Constant":16,"./modules/generator/Voronoi":17,"./modules/misc/Cache":18,"./modules/modifier/Abs":19,"./modules/modifier/Clamp":20,"./modules/modifier/Exponent":21,"./modules/modifier/Invert":22,"./modules/modifier/ScaleBias":23,"./modules/transformer/Displace":24,"./modules/transformer/ScalePoint":25,"./modules/transformer/TranslatePoint":26,"./noise/Voronoi":27,"alea":1}],3:[function(require,module,exports){
 'use strict';
 
 class LCG {
@@ -240,12 +242,93 @@ class Poisson extends Array {
 }
 
 module.exports = Poisson;
-},{"./utils":6}],5:[function(require,module,exports){
+},{"./utils":8}],5:[function(require,module,exports){
+'use strict';
+
+var easing = require('./easing');
+
+class Tween {
+    constructor(points, attr) {
+        this.attr = attr;
+        this.points = [];
+        this.ease = easing.lerp;
+        
+        points.forEach((pt) => {
+            this.addPoint(pt[0], pt[1]);
+        });
+    }
+    
+    addPoint(t, obj) {
+        var points = this.points;
+        
+        for (var i = 0; i < points.length; i++) {
+            if (t < points[i][0]) {
+                break;
+            }
+        }
+        
+        points.splice(i, 0, [t, obj]);
+    }
+    
+    value(t) {
+        var points = this.points;
+        
+        for (var i = 0; i < points.length; i++) {
+            if (t <= points[i][0]) {
+                break;
+            }
+        }
+        
+        // Handle edge cases
+        
+        if (i === 0) {
+            return points[0][1];
+        }
+        else if (i === points.length) {
+            return points[points.length - 1][1];
+        }
+        
+        //
+        
+        var a = points[i - 1],
+            b = points[i];
+            
+        var alpha = (t - a[0]) / (b[0] - a[0]);
+        
+        var result;
+        
+        if (Array.isArray(this.attr)) {
+            result = {};
+            
+            this.attr.forEach((attr) => {
+                result[attr] = this.ease(a[1][attr], b[1][attr], alpha);
+            });
+        } else {
+            result = this.ease(a[1], b[1], alpha);
+        }
+        
+        return result;
+    }
+}
+
+module.exports = Tween;
+},{"./easing":6}],6:[function(require,module,exports){
+'use strict';
+
+var MathEasing = {};
+
+MathEasing.lerp = function(a, b, alpha) {
+    return (1 - alpha) * a + alpha * b;
+};
+
+module.exports = MathEasing;
+},{}],7:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils'),
     LCG = require('./LCG'),
-    Poisson = require('./Poisson');
+    Poisson = require('./Poisson'),
+    Tween = require('./Tween');
     
 var Mathx = {
     factorial: utils.factorial,
@@ -253,11 +336,12 @@ var Mathx = {
     coordHash: utils.coordHash,
     
     LCG: LCG,
-    Poisson: Poisson
+    Poisson: Poisson,
+    Tween: Tween
 };
 
 module.exports = Mathx;
-},{"./LCG":3,"./Poisson":4,"./utils":6}],6:[function(require,module,exports){
+},{"./LCG":3,"./Poisson":4,"./Tween":5,"./utils":8}],8:[function(require,module,exports){
 'use strict';
 
 var MathUtils = {};
@@ -305,7 +389,7 @@ MathUtils.coordHash = function(x, y, z) {
 };
 
 module.exports = MathUtils;
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 class Module {
@@ -334,7 +418,7 @@ class Module {
 
 module.exports = Module;
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -353,7 +437,7 @@ class Add extends Module {
 
 module.exports = Add;
 
-},{"../Module":7}],9:[function(require,module,exports){
+},{"../Module":9}],11:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -372,7 +456,7 @@ class Max extends Module {
 
 module.exports = Max;
 
-},{"../Module":7}],10:[function(require,module,exports){
+},{"../Module":9}],12:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -391,7 +475,7 @@ class Min extends Module {
 
 module.exports = Min;
 
-},{"../Module":7}],11:[function(require,module,exports){
+},{"../Module":9}],13:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -410,7 +494,7 @@ class Multiply extends Module {
 
 module.exports = Multiply;
 
-},{"../Module":7}],12:[function(require,module,exports){
+},{"../Module":9}],14:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -429,7 +513,7 @@ class Power extends Module {
 
 module.exports = Power;
 
-},{"../Module":7}],13:[function(require,module,exports){
+},{"../Module":9}],15:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -448,7 +532,7 @@ class Checkerboard extends Module {
 
 module.exports = Checkerboard;
 
-},{"../Module":7}],14:[function(require,module,exports){
+},{"../Module":9}],16:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -469,7 +553,7 @@ class Constant extends Module {
 
 module.exports = Constant;
 
-},{"../Module":7}],15:[function(require,module,exports){
+},{"../Module":9}],17:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module'),
@@ -504,7 +588,7 @@ class Voronoi extends Module {
 
 module.exports = Voronoi;
 
-},{"../../math":5,"../../noise/Voronoi":25,"../Module":7}],16:[function(require,module,exports){
+},{"../../math":7,"../../noise/Voronoi":27,"../Module":9}],18:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -539,7 +623,7 @@ class Abs extends Module {
 
 module.exports = Abs;
 
-},{"../Module":7}],17:[function(require,module,exports){
+},{"../Module":9}],19:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -558,7 +642,7 @@ class Abs extends Module {
 
 module.exports = Abs;
 
-},{"../Module":7}],18:[function(require,module,exports){
+},{"../Module":9}],20:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -580,7 +664,7 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":7}],19:[function(require,module,exports){
+},{"../Module":9}],21:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -601,7 +685,7 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":7}],20:[function(require,module,exports){
+},{"../Module":9}],22:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -620,7 +704,7 @@ class Invert extends Module {
 
 module.exports = Invert;
 
-},{"../Module":7}],21:[function(require,module,exports){
+},{"../Module":9}],23:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -642,7 +726,7 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":7}],22:[function(require,module,exports){
+},{"../Module":9}],24:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -665,7 +749,7 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":7}],23:[function(require,module,exports){
+},{"../Module":9}],25:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -699,7 +783,7 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":7}],24:[function(require,module,exports){
+},{"../Module":9}],26:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -733,7 +817,7 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":7}],25:[function(require,module,exports){
+},{"../Module":9}],27:[function(require,module,exports){
 'use strict';
 
 var Mathx = require('../math');
@@ -804,4 +888,4 @@ class Voronoi {
 }
 
 module.exports = Voronoi;
-},{"../math":5}]},{},[2]);
+},{"../math":7}]},{},[2]);

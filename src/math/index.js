@@ -2,7 +2,8 @@
 
 var utils = require('./utils'),
     LCG = require('./LCG'),
-    Poisson = require('./Poisson');
+    Poisson = require('./Poisson'),
+    Tween = require('./Tween');
     
 var Mathx = {
     factorial: utils.factorial,
@@ -10,7 +11,8 @@ var Mathx = {
     coordHash: utils.coordHash,
     
     LCG: LCG,
-    Poisson: Poisson
+    Poisson: Poisson,
+    Tween: Tween
 };
 
 module.exports = Mathx;

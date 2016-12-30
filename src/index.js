@@ -5,6 +5,8 @@ var JSNoise = {
     
     Random: require('alea'),
     
+    Mathx: require('./math'),
+    
     Noise: {
         Perlin: NYI,
         Simplex: NYI,
