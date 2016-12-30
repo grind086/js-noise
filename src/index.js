@@ -8,7 +8,7 @@ var JSNoise = {
     Noise: {
         Perlin: NYI,
         Simplex: NYI,
-        Voronoi: NYI
+        Voronoi: require('./noise/Voronoi')
     },
     
     Module: {
@@ -21,7 +21,7 @@ var JSNoise = {
         Simplex: NYI,
         RidgedMulti: NYI,
         Spheres: NYI,
-        Voronoi: NYI,
+        Voronoi: require('./modules/generator/Voronoi'),
         
         // Modifiers
         Abs: require('./modules/modifier/Abs'),

@@ -16,7 +16,11 @@ class Module {
             throw new Error(`Got ${list.length} sources, expected ${this.sourceModuleCount}`);
         }
         
-        list.forEach(this.sourceModules.push);
+        this.sourceModules.length = this.sourceModuleCount;
+        
+        list.forEach((el, i) => {
+            this.sourceModules[i] = el;
+        });
     }
 }
 
