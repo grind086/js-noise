@@ -2,6 +2,10 @@
 
 var MathUtils = {};
 
+MathUtils.lerp = function(a, b, alpha) {
+    return (1 - alpha) * a + alpha * b;
+};
+
 MathUtils.factorial = function(n) {
     var v = 1;
     for (var i = 1; i <= n; i++) {

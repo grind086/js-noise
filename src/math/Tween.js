@@ -1,12 +1,13 @@
 'use strict';
 
-var easing = require('./easing');
+var easing = require('./easing'),
+    utils = require('./utils');
 
 class Tween {
     constructor(points, attr) {
         this.attr = attr;
         this.points = [];
-        this.ease = easing.lerp;
+        this.ease = easing.linear;
         
         points.forEach((pt) => {
             this.addPoint(pt[0], pt[1]);
@@ -48,7 +49,7 @@ class Tween {
         var a = points[i - 1],
             b = points[i];
             
-        var alpha = (t - a[0]) / (b[0] - a[0]);
+        var alpha = this.ease((t - a[0]) / (b[0] - a[0]));
         
         var result;
         
@@ -56,10 +57,10 @@ class Tween {
             result = {};
             
             this.attr.forEach((attr) => {
-                result[attr] = this.ease(a[1][attr], b[1][attr], alpha);
+                result[attr] = utils.lerp(a[1][attr], b[1][attr], alpha);
             });
         } else {
-            result = this.ease(a[1], b[1], alpha);
+            result = utils.lerp(a[1], b[1], alpha);
         }
         
         return result;

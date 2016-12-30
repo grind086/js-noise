@@ -245,13 +245,14 @@ module.exports = Poisson;
 },{"./utils":8}],5:[function(require,module,exports){
 'use strict';
 
-var easing = require('./easing');
+var easing = require('./easing'),
+    utils = require('./utils');
 
 class Tween {
     constructor(points, attr) {
         this.attr = attr;
         this.points = [];
-        this.ease = easing.lerp;
+        this.ease = easing.linear;
         
         points.forEach((pt) => {
             this.addPoint(pt[0], pt[1]);
@@ -293,7 +294,7 @@ class Tween {
         var a = points[i - 1],
             b = points[i];
             
-        var alpha = (t - a[0]) / (b[0] - a[0]);
+        var alpha = this.ease((t - a[0]) / (b[0] - a[0]));
         
         var result;
         
@@ -301,10 +302,10 @@ class Tween {
             result = {};
             
             this.attr.forEach((attr) => {
-                result[attr] = this.ease(a[1][attr], b[1][attr], alpha);
+                result[attr] = utils.lerp(a[1][attr], b[1][attr], alpha);
             });
         } else {
-            result = this.ease(a[1], b[1], alpha);
+            result = utils.lerp(a[1], b[1], alpha);
         }
         
         return result;
@@ -312,28 +313,61 @@ class Tween {
 }
 
 module.exports = Tween;
-},{"./easing":6}],6:[function(require,module,exports){
+},{"./easing":6,"./utils":8}],6:[function(require,module,exports){
 'use strict';
 
-var MathEasing = {};
+// From https://gist.github.com/gre/1650294
 
-MathEasing.lerp = function(a, b, alpha) {
-    return (1 - alpha) * a + alpha * b;
+/*
+ * Easing Functions - inspired from http://gizma.com/easing/
+ * only considering the t value for the range [0, 1] => [0, 1]
+ */
+var EasingFunctions = {
+  // no easing, no acceleration
+  linear: function (t) { return t },
+  // accelerating from zero velocity
+  easeInQuad: function (t) { return t*t },
+  // decelerating to zero velocity
+  easeOutQuad: function (t) { return t*(2-t) },
+  // acceleration until halfway, then deceleration
+  easeInOutQuad: function (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t },
+  // accelerating from zero velocity 
+  easeInCubic: function (t) { return t*t*t },
+  // decelerating to zero velocity 
+  easeOutCubic: function (t) { return (--t)*t*t+1 },
+  // acceleration until halfway, then deceleration 
+  easeInOutCubic: function (t) { return t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1 },
+  // accelerating from zero velocity 
+  easeInQuart: function (t) { return t*t*t*t },
+  // decelerating to zero velocity 
+  easeOutQuart: function (t) { return 1-(--t)*t*t*t },
+  // acceleration until halfway, then deceleration
+  easeInOutQuart: function (t) { return t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t },
+  // accelerating from zero velocity
+  easeInQuint: function (t) { return t*t*t*t*t },
+  // decelerating to zero velocity
+  easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
+  // acceleration until halfway, then deceleration 
+  easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
 };
 
-module.exports = MathEasing;
+module.exports = EasingFunctions;
 },{}],7:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils'),
+    easing = require('./easing'),
     LCG = require('./LCG'),
     Poisson = require('./Poisson'),
     Tween = require('./Tween');
     
 var Mathx = {
+    lerp: utils.lerp,
     factorial: utils.factorial,
     fnv1a: utils.fnv1a,
     coordHash: utils.coordHash,
+    
+    easing: easing,
     
     LCG: LCG,
     Poisson: Poisson,
@@ -341,10 +375,14 @@ var Mathx = {
 };
 
 module.exports = Mathx;
-},{"./LCG":3,"./Poisson":4,"./Tween":5,"./utils":8}],8:[function(require,module,exports){
+},{"./LCG":3,"./Poisson":4,"./Tween":5,"./easing":6,"./utils":8}],8:[function(require,module,exports){
 'use strict';
 
 var MathUtils = {};
+
+MathUtils.lerp = function(a, b, alpha) {
+    return (1 - alpha) * a + alpha * b;
+};
 
 MathUtils.factorial = function(n) {
     var v = 1;
