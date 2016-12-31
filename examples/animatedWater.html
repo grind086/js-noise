@@ -1,0 +1,90 @@
+<html>
+    <head>
+        <script type="text/javascript" src="../build/js-noise.js"></script>
+    </head>
+    
+    <body>
+        <script type="text/javascript">
+            (function() {
+                /* global JSNoise */
+                
+                var canvasWidth = 128,
+                    canvasHeight = 128,
+                    renderWidth = 6,
+                    renderHeight = 6,
+                    tileWidth = 2,
+                    tileHeight = 2;
+                    
+                var frameCount = 30,
+                    frameTime = 0.2,
+                    animTime = 100;
+                    
+                var noise = new JSNoise.Noise.Voronoi(1);
+                
+                noise.wrapZ = frameCount * frameTime;
+                noise.wrapX = renderWidth;
+                noise.wrapY = renderHeight;
+                
+                var colors = new JSNoise.Mathx.Tween([
+                    [0, {r:  65, g: 185, b: 165}],
+                    [1, {r: 255, g: 255, b: 255}]
+                ], ['r', 'g', 'b']);
+                
+                colors.ease = JSNoise.Mathx.easing.easeInQuad;
+                    
+                var el = document.createElement('canvas'),
+                    ctx = el.getContext('2d');
+                    
+                el.width = canvasWidth * tileWidth;
+                el.height = canvasHeight * tileHeight;
+                
+                function renderFrame(t) {
+                    var imgData = ctx.createImageData(canvasWidth, canvasHeight),
+                        data = imgData.data;
+                        
+                    var ws = renderWidth / canvasWidth,
+                        hs = renderHeight / canvasHeight;
+                        
+                    var renderStart = Date.now();
+                    
+                    var i = 0, ix, iy, v, c;
+                    for (iy = 0; iy < canvasHeight; iy++) {
+                        for (ix = 0; ix < canvasWidth; ix++) {
+                            v = noise.getValue(ix * ws, iy * hs, t);
+                            c = colors.value(v);
+                            
+                            data[i  ] = Math.floor(c.r);
+                            data[i+1] = Math.floor(c.g);
+                            data[i+2] = Math.floor(c.b);
+                            data[i+3] = 255;
+                            
+                            i += 4;
+                        }
+                    }
+                    
+                    console.log('Render: %s ms', Date.now() - renderStart);
+                    
+                    return imgData;
+                }
+                
+                var frames = [];
+                for (var i = 0; i < frameCount; i++) {
+                    frames.push(renderFrame(frameTime * i));
+                }
+                
+                var curFrame = 0;
+                function animate() {
+                    for (var x = 0; x < tileWidth; x++) {
+                        for (var y = 0; y < tileHeight; y++) {
+                            ctx.putImageData(frames[curFrame], x * canvasWidth, y * canvasHeight);
+                        }
+                    }
+                    curFrame = (curFrame + 1) % frames.length;
+                }
+                
+                document.body.appendChild(el);
+                setInterval(animate, animTime);
+            })();
+        </script>
+    </body>
+</html>

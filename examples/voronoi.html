@@ -15,10 +15,14 @@
                     
                 var noise = new JSNoise.Noise.Voronoi(2, 1);
                 
+                noise.wrapZ = 2;
+                
                 var colors = new JSNoise.Mathx.Tween([
                     [0, {r:  65, g: 185, b: 165}],
                     [1, {r: 255, g: 255, b: 255}]
                 ], ['r', 'g', 'b']);
+                
+                colors.ease = JSNoise.Mathx.easing.easeInQuad;
                     
                 var el = document.createElement('canvas'),
                     ctx = el.getContext('2d');

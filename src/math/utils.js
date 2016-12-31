@@ -6,6 +6,10 @@ MathUtils.lerp = function(a, b, alpha) {
     return (1 - alpha) * a + alpha * b;
 };
 
+MathUtils.mod = function(n, mod) {
+    return ((n % mod) + mod) % mod;
+};
+
 MathUtils.factorial = function(n) {
     var v = 1;
     for (var i = 1; i <= n; i++) {

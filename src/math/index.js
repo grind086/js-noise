@@ -8,6 +8,7 @@ var utils = require('./utils'),
     
 var Mathx = {
     lerp: utils.lerp,
+    mod: utils.mod,
     factorial: utils.factorial,
     fnv1a: utils.fnv1a,
     coordHash: utils.coordHash,
