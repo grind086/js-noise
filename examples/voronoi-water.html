@@ -1,0 +1,79 @@
+<html>
+    <head>
+        <script type="text/javascript" src="../build/js-noise.js"></script>
+    </head>
+    
+    <body>
+        <script type="text/javascript">
+            (function() {
+                /* global JSNoise */
+                
+                // Render config
+                const canvasWidth = 256;
+                const canvasHeight = 256;
+                const renderWidth = 256;
+                const renderHeight = 256;
+                
+                // Noise config
+                const seed = Date.now(); //1234;
+                const meanPoints = 3;
+                const cellWidth = 5;
+                const cellHeight = 5;
+                
+                // Color tween
+                const color = new JSNoise.Mathx.Tween([
+                    [0.00, {r:  65, g: 185, b: 165}],
+                    [0.95, {r: 255, g: 255, b: 255}]
+                ], ['r', 'g', 'b']);
+                
+                color.ease = JSNoise.Mathx.easing.easeInQuad;
+                
+                // Set up noise modules
+                var voronoi = new JSNoise.Module.Voronoi();
+                voronoi.seed = seed;
+                voronoi.meanPoints = meanPoints;
+                
+                // Render image
+                var imgData = new ImageData(renderWidth, renderHeight),
+                    data = imgData.data;
+                    
+                var ws = cellWidth / renderWidth,
+                    hs = cellHeight / renderHeight;
+                    
+                var renderStart = Date.now();
+                
+                var i = 0, x, y, v, c;
+                for (y = 0; y < renderHeight; y++) {
+                    for (x = 0; x < renderWidth; x++) {
+                        v = voronoi.getValue(x * ws, y * hs, 0);
+                        c = color.value(v);
+                        
+                        data[i  ] = Math.floor(c.r);
+                        data[i+1] = Math.floor(c.g);
+                        data[i+2] = Math.floor(c.b);
+                        data[i+3] = 255;
+                        
+                        i += 4;
+                    }
+                }
+                
+                console.log('Render: %s ms', Date.now() - renderStart);
+                
+                // Create canvas
+                var el = document.createElement('canvas'),
+                    ctx = el.getContext('2d');
+                
+                el.width = renderWidth;
+                el.height = renderHeight;
+                
+                el.style['image-rendering'] = 'pixelated';
+                el.style.width = canvasWidth + 'px';
+                el.style.height = canvasHeight + 'px';
+                
+                ctx.putImageData(imgData, 0, 0);
+                
+                document.body.appendChild(el);
+            })();
+        </script>
+    </body>
+</html>

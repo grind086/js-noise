@@ -1,23 +1,26 @@
 <html>
     <head>
         <script type="text/javascript" src="../build/js-noise.js"></script>
+        <script type="text/javascript" src="./js/common.js"></script>
     </head>
     
     <body>
         <script type="text/javascript">
             (function() {
-                /* global JSNoise */
+                /* global JSNoise,Helper */
+                
+                // Configuration options
                 
                 var canvasWidth = 128,
                     canvasHeight = 128,
                     renderWidth = 6,
                     renderHeight = 6,
-                    tileWidth = 2,
-                    tileHeight = 2;
+                    tileWidth = 5,
+                    tileHeight = 5;
                     
-                var frameCount = 30,
-                    frameTime = 0.2,
-                    animTime = 100;
+                var frameCount = 80,
+                    frameTime = 0.025,
+                    animTime = 16;
                     
                 var noise = new JSNoise.Noise.Voronoi(1);
                 
@@ -72,18 +75,32 @@
                     frames.push(renderFrame(frameTime * i));
                 }
                 
-                var curFrame = 0;
-                function animate() {
+                // Update the current frame using a delta-time accumulator,
+                // then render it to the canvas.
+                
+                var curFrame = 0, 
+                    cumTime = 0;
+                    
+                function renderToCanvas(dt) {
+                    // Update animation frame
+                    cumTime += dt;
+                    
+                    while (cumTime > animTime) {
+                        cumTime -= animTime;
+                        curFrame = (curFrame + 1) % frames.length;
+                    }
+                    
+                    // Draw tiles
                     for (var x = 0; x < tileWidth; x++) {
                         for (var y = 0; y < tileHeight; y++) {
                             ctx.putImageData(frames[curFrame], x * canvasWidth, y * canvasHeight);
                         }
                     }
-                    curFrame = (curFrame + 1) % frames.length;
                 }
                 
+                // Append the canvas to the DOM and start animating
                 document.body.appendChild(el);
-                setInterval(animate, animTime);
+                Helper.animate(renderToCanvas);
             })();
         </script>
     </body>

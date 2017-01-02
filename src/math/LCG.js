@@ -4,13 +4,12 @@ class LCG {
     constructor(seed) {
         if (typeof seed != 'number') seed = Date.now();
         
-        this.seed = seed;
-        this.state = seed;
+        this.setSeed(seed);
     }
     
     setSeed(seed) {
-        this.seed = seed;
-        this.state = seed;
+        this.seed = seed & 0xffffffff;
+        this.state = this.seed;
     }
     
     next() {

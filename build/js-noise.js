@@ -110,7 +110,7 @@
 }));
 
 },{}],2:[function(require,module,exports){
-const NYI = () => { throw new Error('Not yet implemented'); };
+const NYI = function() { throw new Error('Not yet implemented'); };
 
 var JSNoise = {
     r: 0,
@@ -132,7 +132,7 @@ var JSNoise = {
         Constant: require('./modules/generator/Constant'),
         Cylinders: NYI,
         Perlin: NYI,
-        Simplex: NYI,
+        Simplex: require('./modules/generator/Simplex'),
         RidgedMulti: NYI,
         Spheres: NYI,
         Voronoi: require('./modules/generator/Voronoi'),
@@ -142,6 +142,7 @@ var JSNoise = {
         Clamp: require('./modules/modifier/Clamp'),
         Curve: NYI,
         Exponent: require('./modules/modifier/Exponent'),
+        FBM: require('./modules/modifier/FBM'),
         Invert: require('./modules/modifier/Invert'),
         ScaleBias: require('./modules/modifier/ScaleBias'),
         Terrace: NYI,
@@ -173,20 +174,19 @@ module.exports = JSNoise;
 
 if (typeof window == 'object') window.JSNoise = JSNoise;
 
-},{"./math":7,"./modules/combiner/Add":10,"./modules/combiner/Max":11,"./modules/combiner/Min":12,"./modules/combiner/Multiply":13,"./modules/combiner/Power":14,"./modules/generator/Checkerboard":15,"./modules/generator/Constant":16,"./modules/generator/Voronoi":17,"./modules/misc/Cache":18,"./modules/modifier/Abs":19,"./modules/modifier/Clamp":20,"./modules/modifier/Exponent":21,"./modules/modifier/Invert":22,"./modules/modifier/ScaleBias":23,"./modules/transformer/Displace":24,"./modules/transformer/ScalePoint":25,"./modules/transformer/TranslatePoint":26,"./noise/Voronoi":27,"alea":1}],3:[function(require,module,exports){
+},{"./math":7,"./modules/combiner/Add":10,"./modules/combiner/Max":11,"./modules/combiner/Min":12,"./modules/combiner/Multiply":13,"./modules/combiner/Power":14,"./modules/generator/Checkerboard":15,"./modules/generator/Constant":16,"./modules/generator/Simplex":17,"./modules/generator/Voronoi":18,"./modules/misc/Cache":19,"./modules/modifier/Abs":20,"./modules/modifier/Clamp":21,"./modules/modifier/Exponent":22,"./modules/modifier/FBM":23,"./modules/modifier/Invert":24,"./modules/modifier/ScaleBias":25,"./modules/transformer/Displace":26,"./modules/transformer/ScalePoint":27,"./modules/transformer/TranslatePoint":28,"./noise/Voronoi":30,"alea":1}],3:[function(require,module,exports){
 'use strict';
 
 class LCG {
     constructor(seed) {
         if (typeof seed != 'number') seed = Date.now();
         
-        this.seed = seed;
-        this.state = seed;
+        this.setSeed(seed);
     }
     
     setSeed(seed) {
-        this.seed = seed;
-        this.state = seed;
+        this.seed = seed & 0xffffffff;
+        this.state = this.seed;
     }
     
     next() {
@@ -316,7 +316,7 @@ module.exports = Tween;
 },{"./easing":6,"./utils":8}],6:[function(require,module,exports){
 'use strict';
 
-// From https://gist.github.com/gre/1650294
+// Originally from https://gist.github.com/gre/1650294
 
 /*
  * Easing Functions - inspired from http://gizma.com/easing/
@@ -348,7 +348,10 @@ var EasingFunctions = {
   // decelerating to zero velocity
   easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
   // acceleration until halfway, then deceleration 
-  easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
+  easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t },
+  
+  // step
+  step: function(t) { return t<.5 ? 0 : 1 }
 };
 
 module.exports = EasingFunctions;
@@ -357,6 +360,7 @@ module.exports = EasingFunctions;
 
 var utils = require('./utils'),
     easing = require('./easing'),
+    Alea = require('alea'),
     LCG = require('./LCG'),
     Poisson = require('./Poisson'),
     Tween = require('./Tween');
@@ -370,13 +374,14 @@ var Mathx = {
     
     easing: easing,
     
+    Alea: Alea,
     LCG: LCG,
     Poisson: Poisson,
     Tween: Tween
 };
 
 module.exports = Mathx;
-},{"./LCG":3,"./Poisson":4,"./Tween":5,"./easing":6,"./utils":8}],8:[function(require,module,exports){
+},{"./LCG":3,"./Poisson":4,"./Tween":5,"./easing":6,"./utils":8,"alea":1}],8:[function(require,module,exports){
 'use strict';
 
 var MathUtils = {};
@@ -600,6 +605,37 @@ module.exports = Constant;
 'use strict';
 
 var Module = require('../Module'),
+    SimplexNoise = require('../../noise/Simplex'),
+    Mathx = require('../../math');
+
+class Simplex extends Module {
+    constructor() {
+        super();
+        
+        this.noise = new SimplexNoise(this.rng);
+        this.seed = Date.now();
+    }
+    
+    get sourceModuleCount() { return 0; }
+    
+    get seed() { return this._seed; }
+    set seed(s) { 
+        this._seed = s; 
+        this.rng = new Mathx.Alea(s);
+        this.noise.buildPermutationTable(this.rng);
+    }
+    
+    getValue(x, y, z) {
+        return this.noise.getValue(x, y, z);
+    }
+}
+
+module.exports = Simplex;
+
+},{"../../math":7,"../../noise/Simplex":29,"../Module":9}],18:[function(require,module,exports){
+'use strict';
+
+var Module = require('../Module'),
     VoronoiNoise = require('../../noise/Voronoi'),
     Mathx = require('../../math');
 
@@ -631,7 +667,7 @@ class Voronoi extends Module {
 
 module.exports = Voronoi;
 
-},{"../../math":7,"../../noise/Voronoi":27,"../Module":9}],18:[function(require,module,exports){
+},{"../../math":7,"../../noise/Voronoi":30,"../Module":9}],19:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -666,7 +702,7 @@ class Abs extends Module {
 
 module.exports = Abs;
 
-},{"../Module":9}],19:[function(require,module,exports){
+},{"../Module":9}],20:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -685,7 +721,7 @@ class Abs extends Module {
 
 module.exports = Abs;
 
-},{"../Module":9}],20:[function(require,module,exports){
+},{"../Module":9}],21:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -707,7 +743,7 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":9}],21:[function(require,module,exports){
+},{"../Module":9}],22:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -728,7 +764,43 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":9}],22:[function(require,module,exports){
+},{"../Module":9}],23:[function(require,module,exports){
+'use strict';
+
+var Module = require('../Module');
+
+class FBM extends Module {
+    constructor() {
+        super();
+        
+        this.octaves = 8;
+        this.persistence = 0.5;
+        this.lacunarity = 2;
+    }
+    
+    get sourceModuleCount() { return 1; }
+    
+    getValue(x, y, z) {
+        var val = 0,
+            max = 0,
+            a = 1,
+            f = 1;
+            
+        for (var i = 0; i < this.octaves; i++) {
+            val += this.sourceModules[0].getValue(x * f, y * f, z * f) * a;
+            
+            max += a;
+            a *= this.persistence;
+            f *= this.lacunarity;
+        }
+        
+        return val / max;
+    }
+}
+
+module.exports = FBM;
+
+},{"../Module":9}],24:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -747,12 +819,12 @@ class Invert extends Module {
 
 module.exports = Invert;
 
-},{"../Module":9}],23:[function(require,module,exports){
+},{"../Module":9}],25:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
 
-class Clamp extends Module {
+class ScaleBias extends Module {
     constructor() {
         super();
         
@@ -763,13 +835,13 @@ class Clamp extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return this.scale * this.sourceModules[0](x, y, z) + this.bias;
+        return this.scale * this.sourceModules[0].getValue(x, y, z) + this.bias;
     }
 }
 
-module.exports = Clamp;
+module.exports = ScaleBias;
 
-},{"../Module":9}],24:[function(require,module,exports){
+},{"../Module":9}],26:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -792,7 +864,7 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":9}],25:[function(require,module,exports){
+},{"../Module":9}],27:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -826,7 +898,7 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":9}],26:[function(require,module,exports){
+},{"../Module":9}],28:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -860,7 +932,153 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":9}],27:[function(require,module,exports){
+},{"../Module":9}],29:[function(require,module,exports){
+'use strict';
+
+// Based on http://weber.itn.liu.se/~stegu/simplexnoise/SimplexNoise.java
+// by Stefan Gustavson (stegu@itn.liu.se)
+
+var Mathx = require('../math');
+
+const F3 = 1/3;
+const G3 = 1/6;
+
+const grad3 = [
+    [1, 1, 0], [-1, 1, 0], [1, -1, 0], [-1, -1, 0],
+    [1, 0, 1], [-1, 0, 1], [1, 0, -1], [-1, 0, -1],
+    [0, 1, 1], [0, -1, 1], [0, 1, -1], [0, -1, -1]
+];
+
+class Simplex {
+    constructor(rng) {
+        rng = rng || Math.random;
+        
+        this.perm = new Uint8Array(512),
+        this.perm12 = new Uint8Array(512);
+    }
+    
+    buildPermutationTable(rng) {
+        var perm = this.perm,
+            perm12 = this.perm12;
+        
+        for (var i = 0, n; i < 256; i++) {
+            n = Math.floor(256 * rng()) & 255;
+            
+            perm[i]   = perm[i + 256]   = n;
+            perm12[i] = perm12[i + 256] = Mathx.mod(n, 12);
+        }
+    }
+    
+    dot(grad, x, y, z) {
+        return grad[0] * x + grad[1] * y + grad[2] * z;
+    }
+    
+    getValue(x, y, z) {
+        var floor = Math.floor,
+            perm = this.perm,
+            perm12 = this.perm12,
+            dot = this.dot;
+            
+        var s = (x+y+z)*F3;
+        
+        var i = floor(x+s),
+            j = floor(y+s),
+            k = floor(z+s);
+            
+        var t = (i+j+k)*G3;
+        
+        var x0 = x - (i - t),
+            y0 = y - (j - t),
+            z0 = z - (k - t);
+        
+        var i1, j1, k1,
+            i2, j2, k2;
+            
+        if (x0 >= y0) {
+            if (y0 >= z0) {
+                i1=1; j1=0; k1=0; 
+                i2=1; j2=1; k2=0;
+            } else
+            if (x0 >= z0) {
+                i1=1; j1=0; k1=0; 
+                i2=1; j2=0; k2=1;
+            } else {
+                i1=0; j1=0; k1=1; 
+                i2=1; j2=0; k2=1;
+            }
+        } else {
+            if (y0 < z0) {
+                i1=0; j1=0; k1=1; 
+                i2=0; j2=1; k2=1;
+            } else
+            if (x0 < z0) {
+                i1=0; j1=1; k1=0; 
+                i2=0; j2=1; k2=1;
+            } else {
+                i1=0; j1=1; k1=0; 
+                i2=1; j2=1; k2=0;
+            }
+        }
+        
+        var x1 = x0 - i1 + G3,
+            y1 = y0 - j1 + G3,
+            z1 = z0 - k1 + G3;
+            
+        var x2 = x0 - i2 + 2 * G3,
+            y2 = y0 - j2 + 2 * G3,
+            z2 = z0 - k2 + 2 * G3;
+            
+        var x3 = x0 - 1 + 3 * G3,
+            y3 = y0 - 1 + 3 * G3,
+            z3 = z0 - 1 + 3 * G3;
+        
+        var ii = i & 255,
+            jj = j & 255,
+            kk = k & 255;
+            
+        var gi0 = perm12[ii+perm[jj+perm[kk]]],
+            gi1 = perm12[ii+i1+perm[jj+j1+perm[kk+k1]]],
+            gi2 = perm12[ii+i2+perm[jj+j2+perm[kk+k2]]],
+            gi3 = perm12[ii+1+perm[jj+1+perm[kk+1]]];
+            
+        var t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0,
+            t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1,
+            t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2,
+            t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3;
+            
+        var n0, n1, n2, n3;
+        
+        if (t0 < 0) { n0 = 0; }
+        else { 
+            t0 *= t0; 
+            n0 = t0 * t0 * dot(grad3[gi0], x0, y0, z0);
+        }
+        
+        if (t1 < 0) { n1 = 0; }
+        else { 
+            t1 *= t1; 
+            n1 = t1 * t1 * dot(grad3[gi1], x1, y1, z1);
+        }
+        
+        if (t2 < 0) { n2 = 0; }
+        else { 
+            t2 *= t2; 
+            n2 = t2 * t2 * dot(grad3[gi2], x2, y2, z2);
+        }
+        
+        if (t3 < 0) { n3 = 0; }
+        else { 
+            t3 *= t3; 
+            n3 = t3 * t3 * dot(grad3[gi3], x3, y3, z3);
+        }
+        
+        return 32 * (n0 + n1 + n2 + n3);
+    }
+}
+
+module.exports = Simplex;
+
+},{"../math":7}],30:[function(require,module,exports){
 'use strict';
 
 var Mathx = require('../math');

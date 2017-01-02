@@ -1,4 +1,4 @@
-const NYI = () => { throw new Error('Not yet implemented'); };
+const NYI = function() { throw new Error('Not yet implemented'); };
 
 var JSNoise = {
     r: 0,
@@ -8,8 +8,7 @@ var JSNoise = {
     Mathx: require('./math'),
     
     Noise: {
-        Perlin: NYI,
-        Simplex: NYI,
+        Simplex: require('./noise/Simplex'),
         Voronoi: require('./noise/Voronoi')
     },
     
@@ -19,8 +18,7 @@ var JSNoise = {
         Checkerboard: require('./modules/generator/Checkerboard'),
         Constant: require('./modules/generator/Constant'),
         Cylinders: NYI,
-        Perlin: NYI,
-        Simplex: NYI,
+        Simplex: require('./modules/generator/Simplex'),
         RidgedMulti: NYI,
         Spheres: NYI,
         Voronoi: require('./modules/generator/Voronoi'),
@@ -30,6 +28,7 @@ var JSNoise = {
         Clamp: require('./modules/modifier/Clamp'),
         Curve: NYI,
         Exponent: require('./modules/modifier/Exponent'),
+        FBM: require('./modules/modifier/FBM'),
         Invert: require('./modules/modifier/Invert'),
         ScaleBias: require('./modules/modifier/ScaleBias'),
         Terrace: NYI,

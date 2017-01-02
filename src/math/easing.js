@@ -1,6 +1,6 @@
 'use strict';
 
-// From https://gist.github.com/gre/1650294
+// Originally from https://gist.github.com/gre/1650294
 
 /*
  * Easing Functions - inspired from http://gizma.com/easing/
@@ -32,7 +32,10 @@ var EasingFunctions = {
   // decelerating to zero velocity
   easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
   // acceleration until halfway, then deceleration 
-  easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
+  easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t },
+  
+  // step
+  step: function(t) { return t<.5 ? 0 : 1 }
 };
 
 module.exports = EasingFunctions;
