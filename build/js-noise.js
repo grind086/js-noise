@@ -113,15 +113,12 @@
 const NYI = function() { throw new Error('Not yet implemented'); };
 
 var JSNoise = {
-    r: 0,
-    
-    Random: require('alea'),
+    VERSION: '0.1.2',
     
     Mathx: require('./math'),
     
     Noise: {
-        Perlin: NYI,
-        Simplex: NYI,
+        Simplex: require('./noise/Simplex'),
         Voronoi: require('./noise/Voronoi')
     },
     
@@ -131,7 +128,7 @@ var JSNoise = {
         Checkerboard: require('./modules/generator/Checkerboard'),
         Constant: require('./modules/generator/Constant'),
         Cylinders: NYI,
-        Perlin: NYI,
+        Echo: require('./modules/generator/Echo'),
         Simplex: require('./modules/generator/Simplex'),
         RidgedMulti: NYI,
         Spheres: NYI,
@@ -155,8 +152,8 @@ var JSNoise = {
         Power: require('./modules/combiner/Power'),
         
         // Selectors
-        Blend: NYI,
-        Select: NYI,
+        Blend: require('./modules/selector/Blend'),
+        Select: require('./modules/selector/Select'),
         
         // Transformers
         Displace: require('./modules/transformer/Displace'),
@@ -167,6 +164,12 @@ var JSNoise = {
         
         // Misc
         Cache: require('./modules/misc/Cache')
+    },
+    
+    Utils: {
+        renderGreyscale: NYI,
+        renderRGB: NYI,
+        renderRGBA: NYI
     }
 };
 
@@ -174,7 +177,7 @@ module.exports = JSNoise;
 
 if (typeof window == 'object') window.JSNoise = JSNoise;
 
-},{"./math":7,"./modules/combiner/Add":10,"./modules/combiner/Max":11,"./modules/combiner/Min":12,"./modules/combiner/Multiply":13,"./modules/combiner/Power":14,"./modules/generator/Checkerboard":15,"./modules/generator/Constant":16,"./modules/generator/Simplex":17,"./modules/generator/Voronoi":18,"./modules/misc/Cache":19,"./modules/modifier/Abs":20,"./modules/modifier/Clamp":21,"./modules/modifier/Exponent":22,"./modules/modifier/FBM":23,"./modules/modifier/Invert":24,"./modules/modifier/ScaleBias":25,"./modules/transformer/Displace":26,"./modules/transformer/ScalePoint":27,"./modules/transformer/TranslatePoint":28,"./noise/Voronoi":30,"alea":1}],3:[function(require,module,exports){
+},{"./math":7,"./modules/combiner/Add":10,"./modules/combiner/Max":11,"./modules/combiner/Min":12,"./modules/combiner/Multiply":13,"./modules/combiner/Power":14,"./modules/generator/Checkerboard":15,"./modules/generator/Constant":16,"./modules/generator/Echo":17,"./modules/generator/Simplex":18,"./modules/generator/Voronoi":19,"./modules/misc/Cache":20,"./modules/modifier/Abs":21,"./modules/modifier/Clamp":22,"./modules/modifier/Exponent":23,"./modules/modifier/FBM":24,"./modules/modifier/Invert":25,"./modules/modifier/ScaleBias":26,"./modules/selector/Blend":27,"./modules/selector/Select":28,"./modules/transformer/Displace":29,"./modules/transformer/ScalePoint":30,"./modules/transformer/TranslatePoint":31,"./noise/Simplex":32,"./noise/Voronoi":33}],3:[function(require,module,exports){
 'use strict';
 
 class LCG {
@@ -479,7 +482,7 @@ class Add extends Module {
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
-        return this.sourceModules[0](x, y, z) + this.sourceModules[1](x, y, z);
+        return this.sourceModules[0].getValue(x, y, z) + this.sourceModules[1].getValue(x, y, z);
     }
 }
 
@@ -498,7 +501,7 @@ class Max extends Module {
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
-        return Math.max(this.sourceModules[0](x, y, z), this.sourceModules[1](x, y, z));
+        return Math.max(this.sourceModules[0].getValue(x, y, z), this.sourceModules[1].getValue(x, y, z));
     }
 }
 
@@ -517,7 +520,7 @@ class Min extends Module {
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
-        return Math.min(this.sourceModules[0](x, y, z), this.sourceModules[1](x, y, z));
+        return Math.min(this.sourceModules[0].getValue(x, y, z), this.sourceModules[1].getValue(x, y, z));
     }
 }
 
@@ -536,7 +539,7 @@ class Multiply extends Module {
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
-        return this.sourceModules[0](x, y, z) * this.sourceModules[1](x, y, z);
+        return this.sourceModules[0].getValue(x, y, z) * this.sourceModules[1].getValue(x, y, z);
     }
 }
 
@@ -555,7 +558,7 @@ class Power extends Module {
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
-        return Math.pow(this.sourceModules[0](x, y, z), this.sourceModules[1](x, y, z));
+        return Math.pow(this.sourceModules[0].getValue(x, y, z), this.sourceModules[1].getValue(x, y, z));
     }
 }
 
@@ -604,6 +607,27 @@ module.exports = Constant;
 },{"../Module":9}],17:[function(require,module,exports){
 'use strict';
 
+var Module = require('../Module');
+
+class Echo extends Module {
+    constructor() {
+        super();
+        
+        this.arg = 0;
+    }
+    
+    get sourceModuleCount() { return 0; }
+    
+    getValue(x, y, z) {
+        return arguments[this.arg];
+    }
+}
+
+module.exports = Echo;
+
+},{"../Module":9}],18:[function(require,module,exports){
+'use strict';
+
 var Module = require('../Module'),
     SimplexNoise = require('../../noise/Simplex'),
     Mathx = require('../../math');
@@ -632,7 +656,7 @@ class Simplex extends Module {
 
 module.exports = Simplex;
 
-},{"../../math":7,"../../noise/Simplex":29,"../Module":9}],18:[function(require,module,exports){
+},{"../../math":7,"../../noise/Simplex":32,"../Module":9}],19:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module'),
@@ -667,12 +691,12 @@ class Voronoi extends Module {
 
 module.exports = Voronoi;
 
-},{"../../math":7,"../../noise/Voronoi":30,"../Module":9}],19:[function(require,module,exports){
+},{"../../math":7,"../../noise/Voronoi":33,"../Module":9}],20:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
 
-class Abs extends Module {
+class Cache extends Module {
     constructor() {
         super();
         
@@ -693,16 +717,16 @@ class Abs extends Module {
             this._lastX = x;
             this._lastY = y;
             this._lastZ = z;
-            this._lastValue = this.sourceModules[0](x, y, z);
+            this._lastValue = this.sourceModules[0].getValue(x, y, z);
         }
         
         return this._lastValue;
     }
 }
 
-module.exports = Abs;
+module.exports = Cache;
 
-},{"../Module":9}],20:[function(require,module,exports){
+},{"../Module":9}],21:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -715,13 +739,13 @@ class Abs extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return Math.abs(this.sourceModules[0](x, y, z));
+        return Math.abs(this.sourceModules[0].getValue(x, y, z));
     }
 }
 
 module.exports = Abs;
 
-},{"../Module":9}],21:[function(require,module,exports){
+},{"../Module":9}],22:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -737,18 +761,18 @@ class Clamp extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return Math.min(this.max, Math.max(this.min, this.sourceModules[0](x, y, z)));
+        return Math.min(this.max, Math.max(this.min, this.sourceModules[0].getValue(x, y, z)));
     }
 }
 
 module.exports = Clamp;
 
-},{"../Module":9}],22:[function(require,module,exports){
+},{"../Module":9}],23:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
 
-class Clamp extends Module {
+class Exponent extends Module {
     constructor() {
         super();
         
@@ -758,13 +782,13 @@ class Clamp extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return Math.pow(this.sourceModules[0](x, y, z), this.exponent);
+        return Math.pow(this.sourceModules[0].getValue(x, y, z), this.exponent);
     }
 }
 
-module.exports = Clamp;
+module.exports = Exponent;
 
-},{"../Module":9}],23:[function(require,module,exports){
+},{"../Module":9}],24:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -800,7 +824,7 @@ class FBM extends Module {
 
 module.exports = FBM;
 
-},{"../Module":9}],24:[function(require,module,exports){
+},{"../Module":9}],25:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -813,13 +837,13 @@ class Invert extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return -this.sourceModules[0](x, y, z);
+        return -this.sourceModules[0].getValue(x, y, z);
     }
 }
 
 module.exports = Invert;
 
-},{"../Module":9}],25:[function(require,module,exports){
+},{"../Module":9}],26:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -841,7 +865,72 @@ class ScaleBias extends Module {
 
 module.exports = ScaleBias;
 
-},{"../Module":9}],26:[function(require,module,exports){
+},{"../Module":9}],27:[function(require,module,exports){
+'use strict';
+
+var Module = require('../Module'),
+    Mathx = require('../../math');
+
+class Blend extends Module {
+    constructor() {
+        super();
+        
+        this.ease = Mathx.easing.linear;
+    }
+    
+    get sourceModuleCount() { return 3; }
+    
+    getValue(x, y, z) {
+        var a = this.sourceModules[0].getValue(x, y, z),
+            b = this.sourceModules[1].getValue(x, y, z),
+            alpha = this.sourceModules[2].getValue(x, y, z);
+            
+        return Mathx.lerp(a, b, this.ease(alpha));
+    }
+}
+
+module.exports = Blend;
+
+},{"../../math":7,"../Module":9}],28:[function(require,module,exports){
+'use strict';
+
+var Module = require('../Module'),
+    Mathx = require('../../math');
+
+class Blend extends Module {
+    constructor() {
+        super();
+        
+        this.threshold = 0.5;
+        this.edgeFalloff = 0.1;
+        this.ease = Mathx.easing.linear;
+    }
+    
+    get sourceModuleCount() { return 3; }
+    
+    getValue(x, y, z) {
+        var alpha = this.sourceModules[2].getValue(x, y, z);
+            
+        if (alpha <= this.threshold - this.edgeFalloff) {
+            return this.sourceModules[0].getValue(x, y, z);
+        } else
+        if (alpha >= this.threshold + this.edgeFalloff) {
+            return this.sourceModules[1].getValue(x, y, z);
+        }
+        
+        var a = this.sourceModules[0].getValue(x, y, z),
+            b = this.sourceModules[1].getValue(x, y, z);
+            
+        alpha -= (this.threshold - this.edgeFalloff);
+        alpha /= (2 * this.edgeFalloff);
+        
+        return Mathx.lerp(a, b, this.ease(alpha));
+    }
+}
+
+module.exports = Blend;
+
+},{"../../math":7,"../Module":9}],29:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -854,22 +943,22 @@ class TranslatePoint extends Module {
     get sourceModuleCount() { return 4; }
     
     getValue(x, y, z) {
-        var dx = this.sourceModules[0](x, y, z),
-            dy = this.sourceModules[1](x, y, z),
-            dz = this.sourceModules[2](x, y, z);
+        var dx = this.sourceModules[0].getValue(x, y, z),
+            dy = this.sourceModules[1].getValue(x, y, z),
+            dz = this.sourceModules[2].getValue(x, y, z);
             
-        return this.sourceModules[3](x + dx, y + dy, z + dz);
+        return this.sourceModules[3].getValue(x + dx, y + dy, z + dz);
     }
 }
 
 module.exports = TranslatePoint;
 
-},{"../Module":9}],27:[function(require,module,exports){
+},{"../Module":9}],30:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
 
-class TranslatePoint extends Module {
+class ScalePoint extends Module {
     constructor() {
         super();
         
@@ -892,13 +981,13 @@ class TranslatePoint extends Module {
     }
     
     getValue(x, y, z) {
-        return this.sourceModules[0](x + this.scaleX, y + this.scaleY, z + this.scaleZ);
+        return this.sourceModules[0].getValue(x + this.scaleX, y + this.scaleY, z + this.scaleZ);
     }
 }
 
-module.exports = TranslatePoint;
+module.exports = ScalePoint;
 
-},{"../Module":9}],28:[function(require,module,exports){
+},{"../Module":9}],31:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -926,13 +1015,13 @@ class TranslatePoint extends Module {
     }
     
     getValue(x, y, z) {
-        return this.sourceModules[0](x + this.transX, y + this.transY, z + this.transZ);
+        return this.sourceModules[0].getValue(x + this.transX, y + this.transY, z + this.transZ);
     }
 }
 
 module.exports = TranslatePoint;
 
-},{"../Module":9}],29:[function(require,module,exports){
+},{"../Module":9}],32:[function(require,module,exports){
 'use strict';
 
 // Based on http://weber.itn.liu.se/~stegu/simplexnoise/SimplexNoise.java
@@ -1078,7 +1167,7 @@ class Simplex {
 
 module.exports = Simplex;
 
-},{"../math":7}],30:[function(require,module,exports){
+},{"../math":7}],33:[function(require,module,exports){
 'use strict';
 
 var Mathx = require('../math');

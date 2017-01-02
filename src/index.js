@@ -1,9 +1,7 @@
 const NYI = function() { throw new Error('Not yet implemented'); };
 
 var JSNoise = {
-    VERSION: '0.1.1',
-    
-    Random: require('alea'),
+    VERSION: '0.1.2',
     
     Mathx: require('./math'),
     
@@ -18,6 +16,7 @@ var JSNoise = {
         Checkerboard: require('./modules/generator/Checkerboard'),
         Constant: require('./modules/generator/Constant'),
         Cylinders: NYI,
+        Echo: require('./modules/generator/Echo'),
         Simplex: require('./modules/generator/Simplex'),
         RidgedMulti: NYI,
         Spheres: NYI,
@@ -41,8 +40,8 @@ var JSNoise = {
         Power: require('./modules/combiner/Power'),
         
         // Selectors
-        Blend: NYI,
-        Select: NYI,
+        Blend: require('./modules/selector/Blend'),
+        Select: require('./modules/selector/Select'),
         
         // Transformers
         Displace: require('./modules/transformer/Displace'),
@@ -53,6 +52,12 @@ var JSNoise = {
         
         // Misc
         Cache: require('./modules/misc/Cache')
+    },
+    
+    Utils: {
+        renderGreyscale: NYI,
+        renderRGB: NYI,
+        renderRGBA: NYI
     }
 };
 
