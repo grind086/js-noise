@@ -2,7 +2,7 @@
 
 var Module = require('../Module');
 
-class TranslatePoint extends Module {
+class ScalePoint extends Module {
     constructor() {
         super();
         
@@ -25,8 +25,8 @@ class TranslatePoint extends Module {
     }
     
     getValue(x, y, z) {
-        return this.sourceModules[0](x + this.scaleX, y + this.scaleY, z + this.scaleZ);
+        return this.sourceModules[0].getValue(x + this.scaleX, y + this.scaleY, z + this.scaleZ);
     }
 }
 
-module.exports = TranslatePoint;
+module.exports = ScalePoint;

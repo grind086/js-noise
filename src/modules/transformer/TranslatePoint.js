@@ -25,7 +25,7 @@ class TranslatePoint extends Module {
     }
     
     getValue(x, y, z) {
-        return this.sourceModules[0](x + this.transX, y + this.transY, z + this.transZ);
+        return this.sourceModules[0].getValue(x + this.transX, y + this.transY, z + this.transZ);
     }
 }
 

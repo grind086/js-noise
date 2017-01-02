@@ -13,7 +13,7 @@ class Clamp extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return Math.min(this.max, Math.max(this.min, this.sourceModules[0](x, y, z)));
+        return Math.min(this.max, Math.max(this.min, this.sourceModules[0].getValue(x, y, z)));
     }
 }
 

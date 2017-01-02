@@ -10,11 +10,11 @@ class TranslatePoint extends Module {
     get sourceModuleCount() { return 4; }
     
     getValue(x, y, z) {
-        var dx = this.sourceModules[0](x, y, z),
-            dy = this.sourceModules[1](x, y, z),
-            dz = this.sourceModules[2](x, y, z);
+        var dx = this.sourceModules[0].getValue(x, y, z),
+            dy = this.sourceModules[1].getValue(x, y, z),
+            dz = this.sourceModules[2].getValue(x, y, z);
             
-        return this.sourceModules[3](x + dx, y + dy, z + dz);
+        return this.sourceModules[3].getValue(x + dx, y + dy, z + dz);
     }
 }
 

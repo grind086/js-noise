@@ -10,7 +10,7 @@ class Invert extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return -this.sourceModules[0](x, y, z);
+        return -this.sourceModules[0].getValue(x, y, z);
     }
 }
 

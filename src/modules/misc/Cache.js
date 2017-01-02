@@ -2,7 +2,7 @@
 
 var Module = require('../Module');
 
-class Abs extends Module {
+class Cache extends Module {
     constructor() {
         super();
         
@@ -23,11 +23,11 @@ class Abs extends Module {
             this._lastX = x;
             this._lastY = y;
             this._lastZ = z;
-            this._lastValue = this.sourceModules[0](x, y, z);
+            this._lastValue = this.sourceModules[0].getValue(x, y, z);
         }
         
         return this._lastValue;
     }
 }
 
-module.exports = Abs;
+module.exports = Cache;

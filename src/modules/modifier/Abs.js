@@ -10,7 +10,7 @@ class Abs extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return Math.abs(this.sourceModules[0](x, y, z));
+        return Math.abs(this.sourceModules[0].getValue(x, y, z));
     }
 }
 

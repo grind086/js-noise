@@ -2,7 +2,7 @@
 
 var Module = require('../Module');
 
-class Clamp extends Module {
+class Exponent extends Module {
     constructor() {
         super();
         
@@ -12,8 +12,8 @@ class Clamp extends Module {
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
-        return Math.pow(this.sourceModules[0](x, y, z), this.exponent);
+        return Math.pow(this.sourceModules[0].getValue(x, y, z), this.exponent);
     }
 }
 
-module.exports = Clamp;
+module.exports = Exponent;

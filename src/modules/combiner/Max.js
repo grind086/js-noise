@@ -10,7 +10,7 @@ class Max extends Module {
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
-        return Math.max(this.sourceModules[0](x, y, z), this.sourceModules[1](x, y, z));
+        return Math.max(this.sourceModules[0].getValue(x, y, z), this.sourceModules[1].getValue(x, y, z));
     }
 }
 
