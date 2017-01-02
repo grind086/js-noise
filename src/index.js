@@ -1,7 +1,7 @@
 const NYI = function() { throw new Error('Not yet implemented'); };
 
 var JSNoise = {
-    r: 0,
+    VERSION: '0.1.0',
     
     Random: require('alea'),
     

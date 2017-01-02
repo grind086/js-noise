@@ -1,13 +1,19 @@
 {
-  "name": "libnoise",
-  "version": "1.0.0",
+  "name": "js-noise",
+  "version": "0.1.0",
+  "main": "src/index.js",
   "description": "",
-  "main": "libnoise.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Rob Grindeland",
-  "license": "MIT",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grind086/js-noise.git"
+  },
+  "bugs": "https://github.com/grind086/js-noise/issues",
+  "homepage": "https://github.com/grind086/js-noise",
   "dependencies": {
     "alea": "0.0.9"
   }
