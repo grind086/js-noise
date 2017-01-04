@@ -1,0 +1,130 @@
+<html>
+    <head>
+        <script type="text/javascript" src="../build/js-noise.js"></script>
+    </head>
+    
+    <body>
+        <script type="text/javascript">
+            (function() {
+                /* global JSNoise */
+                
+                // Render config
+                const canvasWidth = 800;
+                const canvasHeight = 400;
+                const renderWidth = 800;
+                const renderHeight = 400;
+                
+                // E-W
+                const lonMin = 0;
+                const lonMax = 360;
+                
+                // N-S
+                const latMin = 0;
+                const latMax = 180;
+                
+                const seed = 1483485404452;
+                const worldRadius = 1000;
+                
+                console.log(seed);
+                
+                const colors = new JSNoise.Mathx.Tween([
+                    [0.00, { r:   0, g:  20, b:  70 }], // Deep Water
+                    [0.50, { r:   0, g:  45, b: 145 }], // Deep Water 2
+                    [0.65, { r:  60, g: 210, b: 240 }], // Shallow Water
+                    
+                    [0.65, { r: 255, g: 238, b: 130 }], // Sand
+                    [0.66, { r: 220, g: 205, b: 110 }], // Sand 2
+                    
+                    [0.66, { r:  50, g: 230, b:  60 }], // Light Grass
+                    [0.80, { r:  20, g: 140, b:  25 }], // Dark Grass
+                    [0.90, { r:  15, g: 105, b:  18 }], // Dark Grass 2
+                    [0.95, { r: 200, g: 200, b: 200 }], // Stone
+                    [1.00, { r: 180, g: 180, b: 180 }]  // Stone 2
+                ], ['r', 'g', 'b']);
+                
+                // Set up noise modules
+                var simplex = new JSNoise.Module.Simplex();
+                simplex.seed = seed;
+                
+                var fbm = new JSNoise.Module.FBM();
+                fbm.octaves = 8;
+                fbm.persistence = 0.5;
+                fbm.lacunarity = 2;
+                
+                fbm.setSourceModules([simplex]);
+                
+                var worldScale = new JSNoise.Module.ScalePoint();
+                worldScale.setScale(0.0008);
+                
+                worldScale.setSourceModules([fbm]);
+                
+                var heightScale = new JSNoise.Module.ScaleBias();
+                heightScale.bias = 0.5;
+                heightScale.scale = 0.7;
+                
+                heightScale.setSourceModules([worldScale]);
+                
+                var terrain = heightScale;
+                
+                // Coordinate conversions
+                var lonMinRad = JSNoise.Mathx.clamp(lonMin, 0, 360) * Math.PI / 180,
+                    lonMaxRad = JSNoise.Mathx.clamp(lonMax, 0, 360) * Math.PI / 180,
+                    latMinRad = JSNoise.Mathx.clamp(latMin, 0, 180) * Math.PI / 180,
+                    latMaxRad = JSNoise.Mathx.clamp(latMax, 0, 180) * Math.PI / 180;
+                    
+                var lonRange = lonMaxRad - lonMinRad,
+                    latRange = latMaxRad - latMinRad;
+                
+                function projToWorld(x, y) {
+                    var hori = lonRange * (x / renderWidth ) + lonMinRad,
+                        vert = latRange * (y / renderHeight) + latMinRad;
+                        
+                    return [
+                        worldRadius * Math.sin(vert) * Math.cos(hori),
+                        worldRadius * Math.sin(vert) * Math.sin(hori),
+                        worldRadius * Math.cos(vert)
+                    ];
+                }
+                
+                // Render image
+                var imgData = new ImageData(renderWidth, renderHeight),
+                    data = imgData.data;
+                    
+                var renderStart = Date.now();
+                
+                var i = 0, x, y, w, v, c;
+                for (y = 0; y < renderHeight; y++) {
+                    for (x = 0; x < renderWidth; x++) {
+                        w = projToWorld(x, y);
+                        
+                        v = terrain.getValue(w[0], w[1], w[2]);
+                        c = colors.value(v);
+                        
+                        data[i  ] = Math.floor(c.r);
+                        data[i+1] = Math.floor(c.g);
+                        data[i+2] = Math.floor(c.b);
+                        data[i+3] = 255;
+                        
+                        i += 4;
+                    }
+                }
+                
+                console.log('Render: %s ms', Date.now() - renderStart);
+                
+                // Create canvas
+                var el = document.createElement('canvas'),
+                    ctx = el.getContext('2d');
+                
+                el.width = renderWidth;
+                el.height = renderHeight;
+                
+                el.style.width = canvasWidth + 'px';
+                el.style.height = canvasHeight + 'px';
+                
+                ctx.putImageData(imgData, 0, 0);
+                
+                document.body.appendChild(el);
+            })();
+        </script>
+    </body>
+</html>

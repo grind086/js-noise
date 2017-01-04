@@ -113,7 +113,7 @@
 const NYI = function() { throw new Error('Not yet implemented'); };
 
 var JSNoise = {
-    VERSION: '0.1.2',
+    VERSION: '0.1.3',
     
     Mathx: require('./math'),
     
@@ -164,12 +164,6 @@ var JSNoise = {
         
         // Misc
         Cache: require('./modules/misc/Cache')
-    },
-    
-    Utils: {
-        renderGreyscale: NYI,
-        renderRGB: NYI,
-        renderRGBA: NYI
     }
 };
 
@@ -371,6 +365,7 @@ var utils = require('./utils'),
 var Mathx = {
     lerp: utils.lerp,
     mod: utils.mod,
+    clamp: utils.clamp,
     factorial: utils.factorial,
     fnv1a: utils.fnv1a,
     coordHash: utils.coordHash,
@@ -395,6 +390,10 @@ MathUtils.lerp = function(a, b, alpha) {
 
 MathUtils.mod = function(n, mod) {
     return ((n % mod) + mod) % mod;
+};
+
+MathUtils.clamp = function(n, min, max) {
+    return Math.min(max, Math.max(min, n));
 };
 
 MathUtils.factorial = function(n) {
@@ -981,7 +980,7 @@ class ScalePoint extends Module {
     }
     
     getValue(x, y, z) {
-        return this.sourceModules[0].getValue(x + this.scaleX, y + this.scaleY, z + this.scaleZ);
+        return this.sourceModules[0].getValue(x * this.scaleX, y * this.scaleY, z * this.scaleZ);
     }
 }
 

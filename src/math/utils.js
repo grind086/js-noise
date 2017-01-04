@@ -10,6 +10,10 @@ MathUtils.mod = function(n, mod) {
     return ((n % mod) + mod) % mod;
 };
 
+MathUtils.clamp = function(n, min, max) {
+    return Math.min(max, Math.max(min, n));
+};
+
 MathUtils.factorial = function(n) {
     var v = 1;
     for (var i = 1; i <= n; i++) {

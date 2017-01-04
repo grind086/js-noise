@@ -25,7 +25,7 @@ class ScalePoint extends Module {
     }
     
     getValue(x, y, z) {
-        return this.sourceModules[0].getValue(x + this.scaleX, y + this.scaleY, z + this.scaleZ);
+        return this.sourceModules[0].getValue(x * this.scaleX, y * this.scaleY, z * this.scaleZ);
     }
 }
 

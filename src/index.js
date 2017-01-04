@@ -1,7 +1,7 @@
 const NYI = function() { throw new Error('Not yet implemented'); };
 
 var JSNoise = {
-    VERSION: '0.1.2',
+    VERSION: '0.1.3',
     
     Mathx: require('./math'),
     
@@ -52,12 +52,6 @@ var JSNoise = {
         
         // Misc
         Cache: require('./modules/misc/Cache')
-    },
-    
-    Utils: {
-        renderGreyscale: NYI,
-        renderRGB: NYI,
-        renderRGBA: NYI
     }
 };
 
