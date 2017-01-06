@@ -6,6 +6,16 @@ function toObj(module) {
         type: module.type
     };
     
+    if (module.sourceModuleCount > 0) {
+        var children = [];
+        
+        for (var i = 0; i < module.sourceModuleCount; i++) {
+            children[i] = module.sourceModules[i].uid;
+        }
+        
+        obj.children = children;
+    }
+    
     switch (module.type) {
         // Generators
         case 'Constant':
@@ -86,16 +96,9 @@ function serialize(module, mkTree) {
     if (!mkTree) {
         return JSON.stringify(toObj(module));
     } else {
-        var collection = {},
-            arr = toObjArray(module);
-        
-        arr.forEach((obj) => {
-            collection[obj.uid] = obj;
-        });
-        
         return JSON.stringify({
             root: module.uid,
-            collection: collection
+            collection: toObjArray(module)
         });
     }
 }

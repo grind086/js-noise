@@ -110,10 +110,8 @@
 }));
 
 },{}],2:[function(require,module,exports){
-const NYI = function() { throw new Error('Not yet implemented'); };
-
 var JSNoise = {
-    VERSION: '0.1.3',
+    VERSION: '0.2.0',
     
     Mathx: require('./math'),
     
@@ -122,48 +120,11 @@ var JSNoise = {
         Voronoi: require('./noise/Voronoi')
     },
     
-    Module: {
-        // Generators
-        Billow: NYI,
-        Checkerboard: require('./modules/generator/Checkerboard'),
-        Constant: require('./modules/generator/Constant'),
-        Cylinders: NYI,
-        Echo: require('./modules/generator/Echo'),
-        Simplex: require('./modules/generator/Simplex'),
-        RidgedMulti: NYI,
-        Spheres: NYI,
-        Voronoi: require('./modules/generator/Voronoi'),
-        
-        // Modifiers
-        Abs: require('./modules/modifier/Abs'),
-        Clamp: require('./modules/modifier/Clamp'),
-        Curve: NYI,
-        Exponent: require('./modules/modifier/Exponent'),
-        FBM: require('./modules/modifier/FBM'),
-        Invert: require('./modules/modifier/Invert'),
-        ScaleBias: require('./modules/modifier/ScaleBias'),
-        Terrace: NYI,
-        
-        // Combiners
-        Add: require('./modules/combiner/Add'),
-        Max: require('./modules/combiner/Max'),
-        Min: require('./modules/combiner/Min'),
-        Multiply: require('./modules/combiner/Multiply'),
-        Power: require('./modules/combiner/Power'),
-        
-        // Selectors
-        Blend: require('./modules/selector/Blend'),
-        Select: require('./modules/selector/Select'),
-        
-        // Transformers
-        Displace: require('./modules/transformer/Displace'),
-        RotatePoint: NYI,
-        ScalePoint: require('./modules/transformer/ScalePoint'),
-        TranslatePoint: require('./modules/transformer/TranslatePoint'),
-        Turbulence: NYI,
-        
-        // Misc
-        Cache: require('./modules/misc/Cache')
+    Module: require('./modules'),
+    
+    Utils: {
+        deserialize: require('./utils/deserialize'),
+        serialize: require('./utils/serialize')
     }
 };
 
@@ -171,7 +132,7 @@ module.exports = JSNoise;
 
 if (typeof window == 'object') window.JSNoise = JSNoise;
 
-},{"./math":7,"./modules/combiner/Add":10,"./modules/combiner/Max":11,"./modules/combiner/Min":12,"./modules/combiner/Multiply":13,"./modules/combiner/Power":14,"./modules/generator/Checkerboard":15,"./modules/generator/Constant":16,"./modules/generator/Echo":17,"./modules/generator/Simplex":18,"./modules/generator/Voronoi":19,"./modules/misc/Cache":20,"./modules/modifier/Abs":21,"./modules/modifier/Clamp":22,"./modules/modifier/Exponent":23,"./modules/modifier/FBM":24,"./modules/modifier/Invert":25,"./modules/modifier/ScaleBias":26,"./modules/selector/Blend":27,"./modules/selector/Select":28,"./modules/transformer/Displace":29,"./modules/transformer/ScalePoint":30,"./modules/transformer/TranslatePoint":31,"./noise/Simplex":32,"./noise/Voronoi":33}],3:[function(require,module,exports){
+},{"./math":7,"./modules":21,"./noise/Simplex":34,"./noise/Voronoi":35,"./utils/deserialize":36,"./utils/serialize":37}],3:[function(require,module,exports){
 'use strict';
 
 class LCG {
@@ -356,6 +317,7 @@ module.exports = EasingFunctions;
 'use strict';
 
 var utils = require('./utils'),
+    uuid = require('./uuid'),
     easing = require('./easing'),
     Alea = require('alea'),
     LCG = require('./LCG'),
@@ -370,6 +332,7 @@ var Mathx = {
     fnv1a: utils.fnv1a,
     coordHash: utils.coordHash,
     
+    uuid: uuid,
     easing: easing,
     
     Alea: Alea,
@@ -379,7 +342,7 @@ var Mathx = {
 };
 
 module.exports = Mathx;
-},{"./LCG":3,"./Poisson":4,"./Tween":5,"./easing":6,"./utils":8,"alea":1}],8:[function(require,module,exports){
+},{"./LCG":3,"./Poisson":4,"./Tween":5,"./easing":6,"./utils":8,"./uuid":9,"alea":1}],8:[function(require,module,exports){
 'use strict';
 
 var MathUtils = {};
@@ -442,11 +405,49 @@ module.exports = MathUtils;
 },{}],9:[function(require,module,exports){
 'use strict';
 
+var Alea = require('alea');
+
+// generates a v4 uuid;
+var rng = new Alea(),
+    chars = 'abcdef0123456789',
+    vchars = '89ab';
+    
+function charstr(n, lib) {
+    var len = lib.length,
+        str = '';
+    
+    for (var i = 0; i < n; i++) {
+        str += lib.charAt(Math.floor(rng() * len));
+    }
+    
+    return str;
+}
+
+function uuid() {
+    return (
+        charstr(8, chars) + '-' +
+        charstr(4, chars) + '-4' +
+        charstr(3, chars) + '-' +
+        charstr(1, vchars) +
+        charstr(3, chars) + '-' +
+        charstr(12, chars)
+    );
+}
+
+module.exports = uuid;
+
+},{"alea":1}],10:[function(require,module,exports){
+'use strict';
+
+var Mathx = require('../math');
+
 class Module {
     constructor() {
+        this.uid = Mathx.uuid();
         this.sourceModules = [];
     }
     
+    get type() { throw new Error('Module.type must be overwritten'); }
     get sourceModuleCount() { return 0; }
     
     getValue(x, y, z) {
@@ -468,7 +469,7 @@ class Module {
 
 module.exports = Module;
 
-},{}],10:[function(require,module,exports){
+},{"../math":7}],11:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -478,6 +479,7 @@ class Add extends Module {
         super();
     }
     
+    get type() { return 'Add'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
@@ -487,7 +489,7 @@ class Add extends Module {
 
 module.exports = Add;
 
-},{"../Module":9}],11:[function(require,module,exports){
+},{"../Module":10}],12:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -497,6 +499,7 @@ class Max extends Module {
         super();
     }
     
+    get type() { return 'Max'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
@@ -506,7 +509,7 @@ class Max extends Module {
 
 module.exports = Max;
 
-},{"../Module":9}],12:[function(require,module,exports){
+},{"../Module":10}],13:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -516,6 +519,7 @@ class Min extends Module {
         super();
     }
     
+    get type() { return 'Min'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
@@ -525,7 +529,7 @@ class Min extends Module {
 
 module.exports = Min;
 
-},{"../Module":9}],13:[function(require,module,exports){
+},{"../Module":10}],14:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -535,6 +539,7 @@ class Multiply extends Module {
         super();
     }
     
+    get type() { return 'Multiply'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
@@ -544,7 +549,7 @@ class Multiply extends Module {
 
 module.exports = Multiply;
 
-},{"../Module":9}],14:[function(require,module,exports){
+},{"../Module":10}],15:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -554,6 +559,7 @@ class Power extends Module {
         super();
     }
     
+    get type() { return 'Power'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {
@@ -563,7 +569,7 @@ class Power extends Module {
 
 module.exports = Power;
 
-},{"../Module":9}],15:[function(require,module,exports){
+},{"../Module":10}],16:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -573,6 +579,7 @@ class Checkerboard extends Module {
         super();
     }
     
+    get type() { return 'Checkerboard'; }
     get sourceModuleCount() { return 0; }
     
     getValue(x, y, z) {
@@ -582,7 +589,7 @@ class Checkerboard extends Module {
 
 module.exports = Checkerboard;
 
-},{"../Module":9}],16:[function(require,module,exports){
+},{"../Module":10}],17:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -594,6 +601,7 @@ class Constant extends Module {
         this.value = 0;
     }
     
+    get type() { return 'Constant'; }
     get sourceModuleCount() { return 0; }
     
     getValue(x, y, z) {
@@ -603,7 +611,7 @@ class Constant extends Module {
 
 module.exports = Constant;
 
-},{"../Module":9}],17:[function(require,module,exports){
+},{"../Module":10}],18:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -615,6 +623,7 @@ class Echo extends Module {
         this.arg = 0;
     }
     
+    get type() { return 'Echo'; }
     get sourceModuleCount() { return 0; }
     
     getValue(x, y, z) {
@@ -624,7 +633,7 @@ class Echo extends Module {
 
 module.exports = Echo;
 
-},{"../Module":9}],18:[function(require,module,exports){
+},{"../Module":10}],19:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module'),
@@ -639,6 +648,7 @@ class Simplex extends Module {
         this.seed = Date.now();
     }
     
+    get type() { return 'Simplex'; }
     get sourceModuleCount() { return 0; }
     
     get seed() { return this._seed; }
@@ -655,7 +665,7 @@ class Simplex extends Module {
 
 module.exports = Simplex;
 
-},{"../../math":7,"../../noise/Simplex":32,"../Module":9}],19:[function(require,module,exports){
+},{"../../math":7,"../../noise/Simplex":34,"../Module":10}],20:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module'),
@@ -671,6 +681,7 @@ class Voronoi extends Module {
         this.seed = Date.now();
     }
     
+    get type() { return 'Voronoi'; }
     get sourceModuleCount() { return 0; }
     
     get seed() { return this.noise.seed; }
@@ -690,7 +701,54 @@ class Voronoi extends Module {
 
 module.exports = Voronoi;
 
-},{"../../math":7,"../../noise/Voronoi":33,"../Module":9}],20:[function(require,module,exports){
+},{"../../math":7,"../../noise/Voronoi":35,"../Module":10}],21:[function(require,module,exports){
+const NYI = function() { throw new Error('Not yet implemented'); };
+
+module.exports = {
+    // Generators
+    Billow: NYI,
+    Checkerboard: require('./generator/Checkerboard'),
+    Constant: require('./generator/Constant'),
+    Cylinders: NYI,
+    Echo: require('./generator/Echo'),
+    Simplex: require('./generator/Simplex'),
+    RidgedMulti: NYI,
+    Spheres: NYI,
+    Voronoi: require('./generator/Voronoi'),
+    
+    // Modifiers
+    Abs: require('./modifier/Abs'),
+    Clamp: require('./modifier/Clamp'),
+    Curve: NYI,
+    Exponent: require('./modifier/Exponent'),
+    FBM: require('./modifier/FBM'),
+    Invert: require('./modifier/Invert'),
+    ScaleBias: require('./modifier/ScaleBias'),
+    Terrace: NYI,
+    
+    // Combiners
+    Add: require('./combiner/Add'),
+    Max: require('./combiner/Max'),
+    Min: require('./combiner/Min'),
+    Multiply: require('./combiner/Multiply'),
+    Power: require('./combiner/Power'),
+    
+    // Selectors
+    Blend: require('./selector/Blend'),
+    Select: require('./selector/Select'),
+    
+    // Transformers
+    Displace: require('./transformer/Displace'),
+    RotatePoint: NYI,
+    ScalePoint: require('./transformer/ScalePoint'),
+    TranslatePoint: require('./transformer/TranslatePoint'),
+    Turbulence: NYI,
+    
+    // Misc
+    Cache: require('./misc/Cache')
+};
+
+},{"./combiner/Add":11,"./combiner/Max":12,"./combiner/Min":13,"./combiner/Multiply":14,"./combiner/Power":15,"./generator/Checkerboard":16,"./generator/Constant":17,"./generator/Echo":18,"./generator/Simplex":19,"./generator/Voronoi":20,"./misc/Cache":22,"./modifier/Abs":23,"./modifier/Clamp":24,"./modifier/Exponent":25,"./modifier/FBM":26,"./modifier/Invert":27,"./modifier/ScaleBias":28,"./selector/Blend":29,"./selector/Select":30,"./transformer/Displace":31,"./transformer/ScalePoint":32,"./transformer/TranslatePoint":33}],22:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -707,6 +765,7 @@ class Cache extends Module {
         this._lastValue = null;
     }
     
+    get type() { return 'Cache'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
@@ -725,7 +784,7 @@ class Cache extends Module {
 
 module.exports = Cache;
 
-},{"../Module":9}],21:[function(require,module,exports){
+},{"../Module":10}],23:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -735,6 +794,7 @@ class Abs extends Module {
         super();
     }
     
+    get type() { return 'Abs'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
@@ -744,7 +804,7 @@ class Abs extends Module {
 
 module.exports = Abs;
 
-},{"../Module":9}],22:[function(require,module,exports){
+},{"../Module":10}],24:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -757,6 +817,7 @@ class Clamp extends Module {
         this.max = 1;
     }
     
+    get type() { return 'Clamp'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
@@ -766,7 +827,7 @@ class Clamp extends Module {
 
 module.exports = Clamp;
 
-},{"../Module":9}],23:[function(require,module,exports){
+},{"../Module":10}],25:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -778,6 +839,7 @@ class Exponent extends Module {
         this.exponent = 1;
     }
     
+    get type() { return 'Exponent'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
@@ -787,7 +849,7 @@ class Exponent extends Module {
 
 module.exports = Exponent;
 
-},{"../Module":9}],24:[function(require,module,exports){
+},{"../Module":10}],26:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -801,6 +863,7 @@ class FBM extends Module {
         this.lacunarity = 2;
     }
     
+    get type() { return 'FBM'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
@@ -823,7 +886,7 @@ class FBM extends Module {
 
 module.exports = FBM;
 
-},{"../Module":9}],25:[function(require,module,exports){
+},{"../Module":10}],27:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -833,6 +896,7 @@ class Invert extends Module {
         super();
     }
     
+    get type() { return 'Invert'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
@@ -842,7 +906,7 @@ class Invert extends Module {
 
 module.exports = Invert;
 
-},{"../Module":9}],26:[function(require,module,exports){
+},{"../Module":10}],28:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -855,6 +919,7 @@ class ScaleBias extends Module {
         this.bias = 0;
     }
     
+    get type() { return 'ScaleBias'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
@@ -864,7 +929,7 @@ class ScaleBias extends Module {
 
 module.exports = ScaleBias;
 
-},{"../Module":9}],27:[function(require,module,exports){
+},{"../Module":10}],29:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module'),
@@ -877,6 +942,7 @@ class Blend extends Module {
         this.ease = Mathx.easing.linear;
     }
     
+    get type() { return 'Blend'; }
     get sourceModuleCount() { return 3; }
     
     getValue(x, y, z) {
@@ -890,13 +956,13 @@ class Blend extends Module {
 
 module.exports = Blend;
 
-},{"../../math":7,"../Module":9}],28:[function(require,module,exports){
+},{"../../math":7,"../Module":10}],30:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module'),
     Mathx = require('../../math');
 
-class Blend extends Module {
+class Select extends Module {
     constructor() {
         super();
         
@@ -905,6 +971,7 @@ class Blend extends Module {
         this.ease = Mathx.easing.linear;
     }
     
+    get type() { return 'Select'; }
     get sourceModuleCount() { return 3; }
     
     getValue(x, y, z) {
@@ -927,18 +994,19 @@ class Blend extends Module {
     }
 }
 
-module.exports = Blend;
+module.exports = Select;
 
-},{"../../math":7,"../Module":9}],29:[function(require,module,exports){
+},{"../../math":7,"../Module":10}],31:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
 
-class TranslatePoint extends Module {
+class Displace extends Module {
     constructor() {
         super();
     }
     
+    get type() { return 'Displace'; }
     get sourceModuleCount() { return 4; }
     
     getValue(x, y, z) {
@@ -950,9 +1018,9 @@ class TranslatePoint extends Module {
     }
 }
 
-module.exports = TranslatePoint;
+module.exports = Displace;
 
-},{"../Module":9}],30:[function(require,module,exports){
+},{"../Module":10}],32:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -966,6 +1034,7 @@ class ScalePoint extends Module {
         this.scaleZ = 0;
     }
     
+    get type() { return 'ScalePoint'; }
     get sourceModuleCount() { return 1; }
     
     setScale(x, y, z) {
@@ -986,7 +1055,7 @@ class ScalePoint extends Module {
 
 module.exports = ScalePoint;
 
-},{"../Module":9}],31:[function(require,module,exports){
+},{"../Module":10}],33:[function(require,module,exports){
 'use strict';
 
 var Module = require('../Module');
@@ -1000,6 +1069,7 @@ class TranslatePoint extends Module {
         this.transZ = 0;
     }
     
+    get type() { return 'TranslatePoint'; }
     get sourceModuleCount() { return 1; }
     
     setTranslation(x, y, z) {
@@ -1020,7 +1090,7 @@ class TranslatePoint extends Module {
 
 module.exports = TranslatePoint;
 
-},{"../Module":9}],32:[function(require,module,exports){
+},{"../Module":10}],34:[function(require,module,exports){
 'use strict';
 
 // Based on http://weber.itn.liu.se/~stegu/simplexnoise/SimplexNoise.java
@@ -1166,7 +1236,7 @@ class Simplex {
 
 module.exports = Simplex;
 
-},{"../math":7}],33:[function(require,module,exports){
+},{"../math":7}],35:[function(require,module,exports){
 'use strict';
 
 var Mathx = require('../math');
@@ -1253,4 +1323,224 @@ class Voronoi {
 }
 
 module.exports = Voronoi;
-},{"../math":7}]},{},[2]);
+},{"../math":7}],36:[function(require,module,exports){
+'use strict';
+
+var modules = require('../modules');
+
+function mkModule(obj) {
+    if (!modules.hasOwnProperty(obj.type)) {
+        throw new Error('Invalid module type "' + obj.type + '"');
+    }
+    
+    var mod = new (modules[obj.type])();
+    
+    switch (obj.type) {
+        // Generators
+        case 'Constant':
+            mod.value = obj.value;
+            break;
+        case 'Echo':
+            mod.arg = obj.arg;
+            break;
+        case 'Simplex':
+            mod.seed = obj.seed;
+            break;
+        case 'Voronoi':
+            mod.seed = obj.seed;
+            mod.meanPoints = obj.meanPoints;
+            break;
+            
+        // Modifiers
+        case 'Clamp':
+            mod.min = obj.min;
+            mod.max = obj.max;
+            break;
+        case 'Exponent':
+            mod.exponent = obj.exponent;
+            break;
+        case 'FBM':
+            mod.octaves = obj.octaves;
+            mod.persistence = obj.persistence;
+            mod.lacunarity = obj.lacunarity;
+            break;
+        case 'ScaleBias':
+            mod.scale = obj.scale;
+            mod.bias = obj.bias;
+            break;
+            
+        // Selectors
+        case 'Blend': 
+            // TODO
+            // mod.ease = obj.ease;
+            break;
+        case 'Select':
+            mod.threshold = obj.threshold;
+            mod.edgeFalloff = obj.edgeFalloff;
+            // TODO
+            // mod.ease = obj.ease;
+            break;
+            
+        // Transformers
+        case 'ScalePoint':
+            mod.scaleX = obj.scaleX;
+            mod.scaleY = obj.scaleY;
+            mod.scaleZ = obj.scaleZ;
+            break;
+        case 'TranslatePoint':
+            mod.transX = obj.transX;
+            mod.transY = obj.transY;
+            mod.transZ = obj.transZ;
+            break;
+    }
+    
+    return mod;
+}
+
+function deserialize(json) {
+    var obj = JSON.parse(json);
+    
+    if (!obj.hasOwnProperty('root')) {
+        return mkModule(obj);
+    }
+    
+    var collection = {};
+    
+    // Create modules
+    obj.collection.forEach((moduleObj) => {
+        collection[moduleObj.uid] = mkModule(moduleObj);
+    });
+    
+    // Set sources
+    obj.collection.forEach((moduleObj) => {
+        if (moduleObj.children) {
+            var children = moduleObj.children,
+                sources = [],
+                uid = moduleObj.uid;
+            
+            for (var i = 0; i < children.length; i++) {
+                if (!collection.hasOwnProperty(children[i])) {
+                    throw new Error('Module "' + uid + '" missing child "' + children[i] + '"');
+                }
+                
+                sources[i] = collection[children[i]];
+            }
+            
+            collection[uid].setSourceModules(sources);
+        }
+    });
+    
+    return collection[obj.root];
+}
+
+module.exports = deserialize;
+
+},{"../modules":21}],37:[function(require,module,exports){
+'use strict';
+
+function toObj(module) {
+    var obj = { 
+        uid: module.uid,
+        type: module.type
+    };
+    
+    if (module.sourceModuleCount > 0) {
+        var children = [];
+        
+        for (var i = 0; i < module.sourceModuleCount; i++) {
+            children[i] = module.sourceModules[i].uid;
+        }
+        
+        obj.children = children;
+    }
+    
+    switch (module.type) {
+        // Generators
+        case 'Constant':
+            obj.value = module.value;
+            break;
+        case 'Echo':
+            obj.arg = module.arg;
+            break;
+        case 'Simplex':
+            obj.seed = module.seed;
+            break;
+        case 'Voronoi':
+            obj.seed = module.seed;
+            obj.meanPoints = module.meanPoints;
+            break;
+            
+        // Modifiers
+        case 'Clamp':
+            obj.min = module.min;
+            obj.max = module.max;
+            break;
+        case 'Exponent':
+            obj.exponent = module.exponent;
+            break;
+        case 'FBM':
+            obj.octaves = module.octaves;
+            obj.persistence = module.persistence;
+            obj.lacunarity = module.lacunarity;
+            break;
+        case 'ScaleBias':
+            obj.scale = module.scale;
+            obj.bias = module.bias;
+            break;
+            
+        // Selectors
+        case 'Blend': 
+            // TODO
+            // obj.ease = module.ease;
+            break;
+        case 'Select':
+            obj.threshold = module.threshold;
+            obj.edgeFalloff = module.edgeFalloff;
+            // TODO
+            // obj.ease = module.ease;
+            break;
+            
+        // Transformers
+        case 'ScalePoint':
+            obj.scaleX = module.scaleX;
+            obj.scaleY = module.scaleY;
+            obj.scaleZ = module.scaleZ;
+            break;
+        case 'TranslatePoint':
+            obj.transX = module.transX;
+            obj.transY = module.transY;
+            obj.transZ = module.transZ;
+            break;
+    }
+    
+    return obj;
+}
+
+function toObjArray(module) {
+    var objs = [];
+    
+    objs.push(toObj(module));
+    
+    module.sourceModules.forEach((child) => {
+        toObjArray(child).forEach((childObj) => {
+            objs.push(childObj);
+        });
+    });
+    
+    return objs;
+}
+
+function serialize(module, mkTree) {
+    if (!mkTree) {
+        return JSON.stringify(toObj(module));
+    } else {
+        return JSON.stringify({
+            root: module.uid,
+            collection: toObjArray(module)
+        });
+    }
+}
+
+module.exports = serialize;
+
+},{}]},{},[2]);

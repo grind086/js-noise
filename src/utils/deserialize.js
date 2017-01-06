@@ -9,7 +9,7 @@ function mkModule(obj) {
     
     var mod = new (modules[obj.type])();
     
-    switch (module.type) {
+    switch (obj.type) {
         // Generators
         case 'Constant':
             mod.value = obj.value;
@@ -78,27 +78,30 @@ function deserialize(json) {
         return mkModule(obj);
     }
     
-    var ids = Object.keys(obj.collection),
-        collection = {};
+    var collection = {};
     
     // Create modules
-    ids.forEach((uid) => {
-        collection[uid] = mkModule(obj.collection[uid]);
+    obj.collection.forEach((moduleObj) => {
+        collection[moduleObj.uid] = mkModule(moduleObj);
     });
     
     // Set sources
-    ids.forEach((uid) => {
-        var children = obj.collection[uid].children || [];
-        
-        for (var i = 0; i < children.length; i++) {
-            if (!collection.hasOwnProperty(children[i])) {
-                throw new Error('Module "' + uid + '" missing child "' + children[i] + '"');
+    obj.collection.forEach((moduleObj) => {
+        if (moduleObj.children) {
+            var children = moduleObj.children,
+                sources = [],
+                uid = moduleObj.uid;
+            
+            for (var i = 0; i < children.length; i++) {
+                if (!collection.hasOwnProperty(children[i])) {
+                    throw new Error('Module "' + uid + '" missing child "' + children[i] + '"');
+                }
+                
+                sources[i] = collection[children[i]];
             }
             
-            children[i] = collection[children[i]];
+            collection[uid].setSourceModules(sources);
         }
-        
-        collection[uid].setSourceModules(children);
     });
     
     return collection[obj.root];
