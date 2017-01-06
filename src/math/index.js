@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('./utils'),
+    uuid = require('./uuid'),
     easing = require('./easing'),
     Alea = require('alea'),
     LCG = require('./LCG'),
@@ -15,6 +16,7 @@ var Mathx = {
     fnv1a: utils.fnv1a,
     coordHash: utils.coordHash,
     
+    uuid: uuid,
     easing: easing,
     
     Alea: Alea,

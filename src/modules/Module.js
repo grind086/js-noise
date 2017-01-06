@@ -1,10 +1,14 @@
 'use strict';
 
+var Mathx = require('../math');
+
 class Module {
     constructor() {
+        this.uid = Mathx.uuid();
         this.sourceModules = [];
     }
     
+    get type() { throw new Error('Module.type must be overwritten'); }
     get sourceModuleCount() { return 0; }
     
     getValue(x, y, z) {

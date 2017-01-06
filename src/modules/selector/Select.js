@@ -3,7 +3,7 @@
 var Module = require('../Module'),
     Mathx = require('../../math');
 
-class Blend extends Module {
+class Select extends Module {
     constructor() {
         super();
         
@@ -12,6 +12,7 @@ class Blend extends Module {
         this.ease = Mathx.easing.linear;
     }
     
+    get type() { return 'Select'; }
     get sourceModuleCount() { return 3; }
     
     getValue(x, y, z) {
@@ -34,4 +35,4 @@ class Blend extends Module {
     }
 }
 
-module.exports = Blend;
+module.exports = Select;

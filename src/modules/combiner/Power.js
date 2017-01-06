@@ -7,6 +7,7 @@ class Power extends Module {
         super();
     }
     
+    get type() { return 'Power'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {

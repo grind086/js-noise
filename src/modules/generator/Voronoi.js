@@ -13,6 +13,7 @@ class Voronoi extends Module {
         this.seed = Date.now();
     }
     
+    get type() { return 'Voronoi'; }
     get sourceModuleCount() { return 0; }
     
     get seed() { return this.noise.seed; }

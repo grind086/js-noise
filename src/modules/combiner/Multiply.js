@@ -7,6 +7,7 @@ class Multiply extends Module {
         super();
     }
     
+    get type() { return 'Multiply'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {

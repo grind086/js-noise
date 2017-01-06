@@ -7,6 +7,7 @@ class Add extends Module {
         super();
     }
     
+    get type() { return 'Add'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {

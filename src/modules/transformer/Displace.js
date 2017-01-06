@@ -2,11 +2,12 @@
 
 var Module = require('../Module');
 
-class TranslatePoint extends Module {
+class Displace extends Module {
     constructor() {
         super();
     }
     
+    get type() { return 'Displace'; }
     get sourceModuleCount() { return 4; }
     
     getValue(x, y, z) {
@@ -18,4 +19,4 @@ class TranslatePoint extends Module {
     }
 }
 
-module.exports = TranslatePoint;
+module.exports = Displace;

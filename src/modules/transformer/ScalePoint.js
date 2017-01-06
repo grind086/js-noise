@@ -11,6 +11,7 @@ class ScalePoint extends Module {
         this.scaleZ = 0;
     }
     
+    get type() { return 'ScalePoint'; }
     get sourceModuleCount() { return 1; }
     
     setScale(x, y, z) {

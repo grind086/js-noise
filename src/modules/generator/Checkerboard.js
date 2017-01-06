@@ -7,6 +7,7 @@ class Checkerboard extends Module {
         super();
     }
     
+    get type() { return 'Checkerboard'; }
     get sourceModuleCount() { return 0; }
     
     getValue(x, y, z) {

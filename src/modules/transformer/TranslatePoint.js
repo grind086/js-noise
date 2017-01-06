@@ -11,6 +11,7 @@ class TranslatePoint extends Module {
         this.transZ = 0;
     }
     
+    get type() { return 'TranslatePoint'; }
     get sourceModuleCount() { return 1; }
     
     setTranslation(x, y, z) {

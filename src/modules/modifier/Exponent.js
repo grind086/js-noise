@@ -9,6 +9,7 @@ class Exponent extends Module {
         this.exponent = 1;
     }
     
+    get type() { return 'Exponent'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {

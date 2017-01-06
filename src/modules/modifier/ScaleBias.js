@@ -10,6 +10,7 @@ class ScaleBias extends Module {
         this.bias = 0;
     }
     
+    get type() { return 'ScaleBias'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {

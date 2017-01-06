@@ -7,6 +7,7 @@ class Invert extends Module {
         super();
     }
     
+    get type() { return 'Invert'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {

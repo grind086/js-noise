@@ -9,6 +9,7 @@ class Constant extends Module {
         this.value = 0;
     }
     
+    get type() { return 'Constant'; }
     get sourceModuleCount() { return 0; }
     
     getValue(x, y, z) {

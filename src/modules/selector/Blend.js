@@ -10,6 +10,7 @@ class Blend extends Module {
         this.ease = Mathx.easing.linear;
     }
     
+    get type() { return 'Blend'; }
     get sourceModuleCount() { return 3; }
     
     getValue(x, y, z) {

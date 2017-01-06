@@ -14,6 +14,7 @@ class Cache extends Module {
         this._lastValue = null;
     }
     
+    get type() { return 'Cache'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {

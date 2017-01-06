@@ -11,6 +11,7 @@ class FBM extends Module {
         this.lacunarity = 2;
     }
     
+    get type() { return 'FBM'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {

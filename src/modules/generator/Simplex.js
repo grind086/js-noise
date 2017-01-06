@@ -12,6 +12,7 @@ class Simplex extends Module {
         this.seed = Date.now();
     }
     
+    get type() { return 'Simplex'; }
     get sourceModuleCount() { return 0; }
     
     get seed() { return this._seed; }

@@ -7,6 +7,7 @@ class Min extends Module {
         super();
     }
     
+    get type() { return 'Min'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {

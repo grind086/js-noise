@@ -7,6 +7,7 @@ class Abs extends Module {
         super();
     }
     
+    get type() { return 'Abs'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {

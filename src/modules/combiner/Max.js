@@ -7,6 +7,7 @@ class Max extends Module {
         super();
     }
     
+    get type() { return 'Max'; }
     get sourceModuleCount() { return 2; }
     
     getValue(x, y, z) {

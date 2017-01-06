@@ -9,6 +9,7 @@ class Echo extends Module {
         this.arg = 0;
     }
     
+    get type() { return 'Echo'; }
     get sourceModuleCount() { return 0; }
     
     getValue(x, y, z) {

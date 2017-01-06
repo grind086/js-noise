@@ -10,6 +10,7 @@ class Clamp extends Module {
         this.max = 1;
     }
     
+    get type() { return 'Clamp'; }
     get sourceModuleCount() { return 1; }
     
     getValue(x, y, z) {
